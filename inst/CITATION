@@ -1,0 +1,15 @@
+citHeader("To cite the cata package in publications use:")
+
+yyyy <- "2021"
+vers <- paste0("R package version ", meta$Version,
+              ". http://www.cran.r-project.org/package=cata/")
+
+citEntry(entry = "misc",
+         title = "cata:  Analysis of check-all-that-apply (CATA) data",
+         author = personList(as.person("J.C. Castura")),
+         year = yyyy,
+	       note = vers,
+         textVersion = paste("Castura, J.C. (", yyyy,
+         "). cata:  Analysis of check-all-that-apply (CATA) data. ",
+		     vers, ".", sep="")
+)
