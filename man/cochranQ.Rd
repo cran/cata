@@ -33,6 +33,9 @@ data(bread)
 cochranQ(bread$cata[1:40,,1])
 }
 \references{
+Cochran, W. G. (1950). The comparison of percentages in matched samples. 
+\emph{Biometrika}, 37, 256-266.
+
 Meyners, M., Castura, J.C., & Carr, B.T. (2013). Existing and  
 new approaches for the analysis of CATA data. \emph{Food Quality and Preference}, 
 30, 309-319, \doi{10.1016/j.foodqual.2013.06.010}

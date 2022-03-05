@@ -6,7 +6,7 @@
 \title{Wrapper function for b-cluster analysis}
 \usage{
 bcluster(X, inspect = TRUE, inspect.plot = TRUE, algorithm = "n", 
-measure = "b", G = NULL, M = NULL, max.iter = 500, tol = exp(-8), 
+measure = "b", G = NULL, M = NULL, max.iter = 500, tol = exp(-32), 
 runs = 1, seed = 2021, verbose = FALSE)
 }
 \arguments{
@@ -33,7 +33,7 @@ Cochran's Q test}
 \item{max.iter}{maximum number of iteration allowed (default \code{500})}
 
 \item{tol}{non-hierarchical algorithm stops if variance over 5 iterations is
-less than \code{tol} (default: \code{e^{-8}})}
+less than \code{tol} (default: \code{exp(-32)})}
 
 \item{runs}{number of runs (defaults to \code{1})}
 
@@ -52,8 +52,8 @@ this function is rendered if \code{inspect.plot} is \code{TRUE})}}
 }
 \description{
 By default, \code{bcluster} calls a function to perform b-cluster analysis 
-by a non-hierarchical iterative ascent algorithm,
-then inspects results if there are multiple runs.
+by a non-hierarchical iterative ascent algorithm, then inspects results if 
+there are multiple runs.
 }
 \examples{
 data(bread)
@@ -64,7 +64,8 @@ data(bread)
 # (b2 <- bcluster.n(bread$cata[1:10,,1:6], G=2))
 }
 \references{
-Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2021). 
+Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
 Clustering consumers based on product discrimination in check-all-that-apply 
-(CATA) data. \emph{Food Quality and Preference}, submitted.
+(CATA) data. \emph{Food Quality and Preference}, 104564. 
+\doi{10.1016/j.foodqual.2022.104564}.
 }

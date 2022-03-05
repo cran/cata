@@ -5,7 +5,7 @@
 \alias{barray}
 \title{Convert 3d array of CATA data to 4d array of CATA differences}
 \usage{
-barray(X, values = "bc")
+barray(X, values = "bc", type.in = "binary", type.out = "binary")
 }
 \arguments{
 \item{X}{three-dimensional array (\code{I} assessors, \code{J}
@@ -15,6 +15,11 @@ or \code{1} (checked)}
 \item{values}{\code{"bc"} (default) returns two outcomes: \code{b} and 
 \code{c}; otherwise \code{"abcd"} returns four outcomes: \code{a}, \code{b}, 
 \code{c}, \code{d}.}
+
+\item{type.in}{type of data submitted; default (\code{binary}) may be set to
+\code{ordinal} or \code{scale}.}
+
+\item{type.out}{currently only \code{binary} is implemented}
 }
 \value{
 A four-dimensional array of product comparisons having \code{I} 
@@ -35,11 +40,8 @@ data(bread)
 b <- barray(bread$cata[1:10,,])
 }
 \references{
-Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2021). 
+Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
 Clustering consumers based on product discrimination in check-all-that-apply 
-(CATA) data. \emph{Food Quality and Preference}, submitted.
-
-McNemar, Q. (1947). Note on the sampling error of the difference between
-correlated proportions or percentages. \emph{Psychometrika}, 12, 153-157,
-\doi{10.1007/BF02295996}.
+(CATA) data. \emph{Food Quality and Preference}, 104564. 
+\doi{10.1016/j.foodqual.2022.104564}.
 }

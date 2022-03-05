@@ -9,7 +9,7 @@ bcluster.h(X, measure = "b", runs = 1, seed = 2021,  verbose = FALSE)
 }
 \arguments{
 \item{X}{three-way array; the \code{I, J, M} array has \code{I}
-assessors, \code{J} products, code{M} attributes where CATA data have values 
+assessors, \code{J} products, \code{M} attributes where CATA data have values 
 \code{0} (not checked) and \code{1} (checked)}
 
 \item{measure}{currently only \code{b} (the \code{b}-measure) is implemented}
@@ -43,7 +43,8 @@ plot(as.dendrogram(b),
   sub = "10 bread consumers on 6 attributes")
 }
 \references{
-Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2021). 
+Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
 Clustering consumers based on product discrimination in check-all-that-apply 
-(CATA) data. \emph{Food Quality and Preference}, submitted.
+(CATA) data. \emph{Food Quality and Preference}, 104564. 
+\doi{10.1016/j.foodqual.2022.104564}.
 }

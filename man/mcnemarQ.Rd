@@ -35,7 +35,10 @@ mcnemarQ(bread$cata[1:40,,1])
 }
 \references{
 Cochran, W. G. (1950). The comparison of percentages in matched samples. 
-\emph{Biometrika}, 37, 256-266.
+\emph{Biometrika}, 37, 256-266. 
+
+McNemar, Q. (1947). Note on the sampling error of the difference between 
+correlated proportions or percentages. \emph{Psychometrika}, 12(2), 153-157.
 
 Meyners, M., Castura, J.C., & Carr, B.T. (2013). Existing and  
 new approaches for the analysis of CATA data. \emph{Food Quality and 

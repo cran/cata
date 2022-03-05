@@ -37,6 +37,8 @@ A list containing cluster analysis quality measures:
    retained in the solution}
    \item{\code{min(NR)} = smallest observed between-cluster non-redundancy}
    \item{\code{Div_G} = overall diversity (coverage)}
+   \item{\code{H_G} = overall homogeneity (weighted average of within-cluster
+   homogeneity indices)}
    \item{\code{avRV} = average RV coefficient for all between-cluster 
    comparisons}}}
  \item{\code{$clusters} : 
@@ -67,9 +69,10 @@ data(bread)
 evaluateClusterQuality(bread$cata[1:14,,1:6], M = rep(1:2, each = 7))
 }
 \references{
-Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2021). 
+Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
 Clustering consumers based on product discrimination in check-all-that-apply 
-(CATA) data. \emph{Food Quality and Preference}, submitted.
+(CATA) data. \emph{Food Quality and Preference}, 104564. 
+\doi{10.1016/j.foodqual.2022.104564}.
 }
 \seealso{
 \code{\link[cata]{homogeneity}}

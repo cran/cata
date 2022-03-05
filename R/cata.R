@@ -1,13 +1,13 @@
 #' Wrapper function for b-cluster analysis
 #'
 #' By default, \code{bcluster} calls a function to perform b-cluster analysis 
-#' by a non-hierarchical iterative ascent algorithm,
-#' then inspects results if there are multiple runs. 
+#' by a non-hierarchical iterative ascent algorithm, then inspects results if 
+#' there are multiple runs. 
 #' 
 #' @name bcluster
 #' @aliases bcluster
 #' @usage bcluster(X, inspect = TRUE, inspect.plot = TRUE, algorithm = "n", 
-#' measure = "b", G = NULL, M = NULL, max.iter = 500, tol = exp(-8), 
+#' measure = "b", G = NULL, M = NULL, max.iter = 500, tol = exp(-32), 
 #' runs = 1, seed = 2021, verbose = FALSE)
 #' @param X three-way array with \code{I} assessors, \code{J} products, 
 #' \code{M} attributes where CATA data have values \code{0} (not checked) and 
@@ -24,7 +24,7 @@
 #' @param M initial cluster memberships
 #' @param max.iter maximum number of iteration allowed (default \code{500})
 #' @param tol non-hierarchical algorithm stops if variance over 5 iterations is
-#' less than \code{tol} (default: \code{e^{-8}})
+#' less than \code{tol} (default: \code{exp(-32)})
 #' @param runs number of runs (defaults to \code{1})
 #' @param seed for reproducibility (default is \code{2021})
 #' @param verbose maximum number of iterations 
@@ -37,9 +37,10 @@
 #' this function is rendered if \code{inspect.plot} is \code{TRUE})}}
 #' @export
 #' @encoding UTF-8
-#' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2021). 
+#' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
 #' Clustering consumers based on product discrimination in check-all-that-apply 
-#' (CATA) data. \emph{Food Quality and Preference}, submitted.
+#' (CATA) data. \emph{Food Quality and Preference}, 104564. 
+#' \doi{10.1016/j.foodqual.2022.104564}.
 #' @examples
 #' data(bread)
 #' 
@@ -50,8 +51,7 @@
 bcluster <- function(X, inspect = TRUE, inspect.plot = TRUE,
                      algorithm = "n", measure = "b",
                      G = NULL, M = NULL, max.iter = 500,
-                     tol = exp(-8), 
-                     runs = 1, seed = 2021, verbose = FALSE){
+                     tol = exp(-32), runs = 1, seed = 2021, verbose = FALSE){
   if(is.null(X)) return(print("X must be an array"))
   if(algorithm %in% c("h", "1")){
     out <- bcluster.h(X = X, measure = measure, runs = runs, 
@@ -79,7 +79,7 @@ bcluster <- function(X, inspect = TRUE, inspect.plot = TRUE,
 #' @aliases bcluster.h
 #' @usage bcluster.h(X, measure = "b", runs = 1, seed = 2021,  verbose = FALSE)
 #' @param X three-way array; the \code{I, J, M} array has \code{I}
-#' assessors, \code{J} products, code{M} attributes where CATA data have values 
+#' assessors, \code{J} products, \code{M} attributes where CATA data have values 
 #' \code{0} (not checked) and \code{1} (checked)
 #' @param measure currently only \code{b} (the \code{b}-measure) is implemented 
 #' @param runs number of runs (defaults to \code{1}; use a higher number of
@@ -93,9 +93,10 @@ bcluster <- function(X, inspect = TRUE, inspect.plot = TRUE,
 #' differentiation at each iteration (merger)).
 #' @export
 #' @encoding UTF-8
-#' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2021). 
+#' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
 #' Clustering consumers based on product discrimination in check-all-that-apply 
-#' (CATA) data. \emph{Food Quality and Preference}, submitted.
+#' (CATA) data. \emph{Food Quality and Preference}, 104564. 
+#' \doi{10.1016/j.foodqual.2022.104564}.
 #' @examples
 #' data(bread)
 #' 
@@ -361,7 +362,7 @@ bcluster.h <- function(X, measure = "b", runs = 1,
 #' @name bcluster.n
 #' @aliases bcluster.n
 #' @usage bcluster.n(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
-#' tol = exp(-8), seed = 2021, verbose = FALSE)
+#' X.input = "data", tol = exp(-32), seed = 2021, verbose = FALSE)
 #' @param X CATA data organized in a three-way array (assessors, products, 
 #' attributes)
 #' @param G number of clusters (required for non-hierarchical algorithm)
@@ -369,8 +370,10 @@ bcluster.h <- function(X, measure = "b", runs = 1,
 #' @param measure \code{b} (default) for the \code{b}-measure is implemented
 #' @param max.iter maximum number of iteration allowed (default \code{500})
 #' @param runs number of runs (defaults to \code{1})
+#' @param X.input either \code{"data"} (default) or \code{"bc"} if \code{X} is
+#' obtained from the function \code{\link[cata]{barray}} 
 #' @param tol algorithm stops if variance over 5 iterations is less than 
-#' \code{tol} (default: \code{e^{-8}})
+#' \code{tol} (default: \code{exp(-32)})
 #' @param seed for reproducibility (default is \code{2021})
 #' @param verbose maximum number of iterations 
 #' @return An object of class \code{bclust.n} (or a list of such objects 
@@ -387,17 +390,17 @@ bcluster.h <- function(X, measure = "b", runs = 1,
 #' before \code{max.iter}}}
 #' @export
 #' @encoding UTF-8
-#' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2021). 
+#' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
 #' Clustering consumers based on product discrimination in check-all-that-apply 
-#' (CATA) data. \emph{Food Quality and Preference}, submitted.
+#' (CATA) data. \emph{Food Quality and Preference}, 104564. 
+#' \doi{10.1016/j.foodqual.2022.104564}.
 #' @examples
 #' data(bread)
 #' 
 #' # b-cluster analysis on the first 10 consumers and the first 6 attributes
 #' (b <- bcluster.n(bread$cata[1:10, , 1:6], G=2))
 bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
-                       tol = exp(-8), seed = 2021, verbose = FALSE){
-  
+                       X.input = "data", tol = exp(-32), seed = 2021, verbose = FALSE){
   bcluster.call <- match.call()
   if(!is.null(M) & runs > 1){
     print("Cluster memberships in M will be the starting point for run 1.")
@@ -518,13 +521,44 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
     }
     return(out)
   }
+  findJ <- function(njj){
+    # we know that j is larger than 1 and less than njj
+    j.guess <- 1
+    njj.sum <- 0
+    continue <- TRUE
+    while(continue){
+      if(njj.sum == njj){
+        continue <- FALSE
+      } else {
+        njj.sum <- njj.sum + j.guess
+        j.guess <- j.guess + 1
+      }
+      if(njj.sum > njj){
+        j.guess <- NA
+        continue <- FALSE
+      }
+    }
+    return(j.guess)
+  }
   ## End of functions
   
-  nI <- dim(X)[1]
-  nJ <- dim(X)[2]
-  nM <- dim(X)[3]
-  X.bc <- barray(X)
-  nJJ <- dim(X.bc)[2]
+  if(X.input == "data"){
+    nI <- dim(X)[1]
+    nJ <- dim(X)[2]
+    nM <- dim(X)[3]
+    X.bc <- barray(X)
+    nJJ <- dim(X.bc)[2]
+  } else if (X.input == "bc"){
+    if(measure == "Q"){
+      return(print("b-cluster analysis requires raw data for measure Q"))
+    }
+    X.bc <- X
+    X <- NULL
+    nI <- dim(X.bc)[1]
+    nJJ <- dim(X.bc)[2]
+    nM <- dim(X.bc)[5]
+    nJ <- findJ(dim(X.bc)[2])
+  }
   if(is.null(dimnames(X.bc)[[1]])) dimnames(X.bc)[[1]] <- 1:nI
   if(is.null(dimnames(X.bc)[[2]])) dimnames(X.bc)[[2]] <- 1:nJJ
   if(is.null(dimnames(X.bc)[[3]])) dimnames(X.bc)[[3]] <- 1:nM
@@ -546,15 +580,23 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
     if(is.null(M) || this.run > 1) M <- sample(G, nI, replace=TRUE)
     
     # Measure for groups
-    current <- .getCurrent(M = M, X, measure=measure)
+    if(X.input == "data"){
+      current <- .getCurrent(M = M, X, measure=measure)
+    } else if (X.input == "bc"){
+      current <- .getCurrent(M = M, X.bc = X.bc, measure=measure)
+    }
+    
     # Enumerate impact of all (I*(G-1)) swaps
     # ...out of group indicated by M
     # ...and into one of the other (G-1) groups
     
     # Initialize candidate matrix (.initCandidate)
     # Later update candidate matrix (.updateCandidate)
-    candidate <- .initCandidate(M, X, measure = measure)
-    
+    if(X.input == "data"){
+      candidate <- .initCandidate(M, X, measure = measure)
+    } else if (X.input == "bc"){
+      candidate <- .initCandidate(M, X.bc = X.bc, measure = measure)
+    }
     it <- 0
     continue <- TRUE
     Qual <- sum(current) # starting "quality" of solution
@@ -565,12 +607,23 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
         # Update group membership vector
         M[this.swap$i] <- this.swap$g
         # Update candidate matrix
-        candidate <- .updateCandidate(M, X, candidate, 
-                                      update.i = this.swap$i, 
-                                      update.g = c(old.g, this.swap$g), 
-                                      G=G, X.bc = X.bc, measure = measure)
+        if(X.input == "data"){
+          candidate <- .updateCandidate(M, X, candidate, 
+                                        update.i = this.swap$i, 
+                                        update.g = c(old.g, this.swap$g), 
+                                        G=G, X.bc = X.bc, measure = measure)
+        } else if (X.input == "bc"){
+          candidate <- .updateCandidate(M, X = NULL, candidate, 
+                                        update.i = this.swap$i, 
+                                        update.g = c(old.g, this.swap$g), 
+                                        G=G, X.bc = X.bc, measure = measure)
+        }
         # Recalculate current
-        current <- .getCurrent(M = M, X, measure=measure)
+        if(X.input == "data"){
+          current <- .getCurrent(M = M, X, measure=measure)
+        } else if (X.input == "bc"){
+          current <- .getCurrent(M = M, X = NULL, X.bc = X.bc, measure=measure)
+        }
         # Update quality measure
         Qual <- c(Qual, sum(current))
       } else {
@@ -578,7 +631,10 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
       }
       it <- it + 1
       if(it > max.iter) continue <- FALSE
-      if(it > 6) if (stats::var(rev(Qual[1:5]))<tol) continue <- FALSE
+      #if(it > 6) if (stats::var(rev(Qual)[1:5])<tol) continue <- FALSE
+      # maybe this is better? i.e. zero progress over 6 iterations 
+      if(it > 6) if (abs(diff(rev(Qual)[c(1,6)]))<tol) continue <- FALSE
+      #if(it > 6) if(all.equal(rev(Qual[1:5]))) continue <- FALSE
     }
     if(measure == "b"){
       bclust.list[[this.run]] <- 
@@ -634,9 +690,10 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
 #' to which the consumers (columns) are allocated}}
 #' @export
 #' @encoding UTF-8
-#' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2021). 
+#' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
 #' Clustering consumers based on product discrimination in check-all-that-apply 
-#' (CATA) data. \emph{Food Quality and Preference}, submitted.
+#' (CATA) data. \emph{Food Quality and Preference}, 104564. 
+#' \doi{10.1016/j.foodqual.2022.104564}.
 #' @examples
 #' data(bread)
 #' 
@@ -665,7 +722,7 @@ inspect <- function(X, G = 2, bestB = NULL, bestM = NULL, inspect.plot = TRUE){
                    memberships in bestM"))
     }
   }
-  if(class(X[[1]]) == "hclust"){
+  if(class(X[[1]]) %in% "hclust"){
     nI <- nrow(X[[1]]$merge)+1
     # Mmat   :  membership matrix: rows=assessors, columns=runs
     Mmat <- matrix(unlist(lapply(X, stats::cutree, k=G)), nrow = nI, byrow = FALSE)
@@ -727,7 +784,7 @@ inspect <- function(X, G = 2, bestB = NULL, bestM = NULL, inspect.plot = TRUE){
                      y = all.sol[,2],
                      labels = as.character(round(raw.a,2)*100), srt=45)
     }
-  } else if (class(X[[1]]) == "bclust.n"){
+  } else if (class(X[[1]]) %in% "bclust.n"){
     nI <- length(X[[1]]$cluster)
     # Mmat   :  membership matrix: rows=assessors, columns=runs
     Mmat <- matrix(unlist(lapply(X, function(x){
@@ -831,9 +888,10 @@ inspect <- function(X, G = 2, bestB = NULL, bestM = NULL, inspect.plot = TRUE){
 #' @return b-measure
 #' @export
 #' @encoding UTF-8
-#' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2021). 
+#' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
 #' Clustering consumers based on product discrimination in check-all-that-apply 
-#' (CATA) data. \emph{Food Quality and Preference}, submitted.
+#' (CATA) data. \emph{Food Quality and Preference}, 104564. 
+#' \doi{10.1016/j.foodqual.2022.104564}.
 #' @examples
 #' data(bread)
 #' 
@@ -866,7 +924,12 @@ getb <- function(X.b, X.c){
 #' @export
 #' @encoding UTF-8
 #' @seealso \code{\link[cata]{mcnemarQ}}
-#' @references  Meyners, M., Castura, J.C., & Carr, B.T. (2013). Existing and  
+#' @references  
+#' 
+#' Cochran, W. G. (1950). The comparison of percentages in matched samples. 
+#' \emph{Biometrika}, 37, 256-266.
+#' 
+#' Meyners, M., Castura, J.C., & Carr, B.T. (2013). Existing and  
 #' new approaches for the analysis of CATA data. \emph{Food Quality and Preference}, 
 #' 30, 309-319, \doi{10.1016/j.foodqual.2013.06.010}
 #' @examples
@@ -935,7 +998,10 @@ cochranQ <- function(X, na.rm = TRUE, quiet = FALSE,
 #' @references  
 #' 
 #' Cochran, W. G. (1950). The comparison of percentages in matched samples. 
-#' \emph{Biometrika}, 37, 256-266.
+#' \emph{Biometrika}, 37, 256-266. 
+#' 
+#' McNemar, Q. (1947). Note on the sampling error of the difference between 
+#' correlated proportions or percentages. \emph{Psychometrika}, 12(2), 153-157.
 #' 
 #' Meyners, M., Castura, J.C., & Carr, B.T. (2013). Existing and  
 #' new approaches for the analysis of CATA data. \emph{Food Quality and 
@@ -1005,40 +1071,46 @@ mcnemarQ <- function(X, na.rm = TRUE, quiet = FALSE,
 #'  
 #' @name barray
 #' @aliases barray
-#' @usage barray(X, values = "bc")
+#' @usage barray(X, values = "bc", type.in = "binary", type.out = "binary")
 #' @param X three-dimensional array (\code{I} assessors, \code{J}
 #' products, \code{M} attributes) where values are \code{0} (not checked) 
 #' or \code{1} (checked)
 #' @param values \code{"bc"} (default) returns two outcomes: \code{b} and 
 #' \code{c}; otherwise \code{"abcd"} returns four outcomes: \code{a}, \code{b}, 
 #' \code{c}, \code{d}.
+#' @param type.in type of data submitted; default (\code{binary}) may be set to
+#' \code{ordinal} or \code{scale}.
+#' @param type.out currently only \code{binary} is implemented
 #' @return A four-dimensional array of product comparisons having \code{I} 
 #' assessors, \code{J(J-1)/2} product comparisons, outcomes (see \code{values}
 #' parameter), \code{M} attributes
 #' @export
 #' @encoding UTF-8
-#' @references 
-#' 
-#' Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2021). 
+#' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
 #' Clustering consumers based on product discrimination in check-all-that-apply 
-#' (CATA) data. \emph{Food Quality and Preference}, submitted.
-#' 
-#' McNemar, Q. (1947). Note on the sampling error of the difference between
-#' correlated proportions or percentages. \emph{Psychometrika}, 12, 153-157,
-#' \doi{10.1007/BF02295996}.
+#' (CATA) data. \emph{Food Quality and Preference}, 104564. 
+#' \doi{10.1016/j.foodqual.2022.104564}.
 #' 
 #' @examples
 #' data(bread)
 #' 
 #' # Get the 4d array of CATA differences for the first 10 consumers
 #' b <- barray(bread$cata[1:10,,])
-barray <- function(X, values = "bc"){
-  abcd_1attribute <- function(X){
-    .abcd_1pair <- function(x, y){
+barray <- function(X, values = "bc", type.in = "binary", type.out = "binary"){
+  abcd_1attribute <- function(X, type.in = "binary"){
+    .abcd_1pair <- function(x, y, type.in = "binary"){
       x <- c(x) # product 'x' (1 response per consumer)
       y <- c(y) # product 'y' (1 response per consumer)
-      return(list(a = sum(x+y == 2), b = sum(x-y == 1),
-                  c = sum(x-y == -1), d = sum(x+y == 0)))
+      if(type.in == "binary"){
+        return(list(a = sum(x+y == 2), b = sum(x-y == 1),
+                    c = sum(x-y == -1), d = sum(x+y == 0)))
+      }
+      if(type.in %in% c("scale", "ordinal")){
+        return(list(a = sum(all(x == y, x != 0)), 
+                    b = sum(x > y),
+                    c = sum(x < y), 
+                    d = sum(all(x == y, x == 0))))
+      }
     }
     if(is.vector(X)){
       X <- matrix(X, nrow = 1)
@@ -1050,7 +1122,7 @@ barray <- function(X, values = "bc"){
                         dimnames = list(NULL, letters[1:4]))
     for(i in 1:ncol(pair.items)){
       this.pair[i, ] <- unlist(.abcd_1pair(X[,pair.items[1,i]], 
-                                           X[,pair.items[2,i]]))
+                                           X[,pair.items[2,i]], type.in = type.in))
     }
     return(this.pair)
   }
@@ -1064,16 +1136,18 @@ barray <- function(X, values = "bc"){
   }
   nM <- dim(X)[3]
   out <- array(0, c(nI, nJ*(nJ-1)/2, 4, nM), 
-               dimnames = list(dimnames(X)[[1]], NULL, letters[1:4], 
+               dimnames = list(dimnames(X)[[1]], 
+                               apply(t(utils::combn(6,2)), 1, paste0, collapse = "_"), 
+                               letters[1:4], 
                                colnames(X[1,,])))
   for (i in 1:nI){
     for(m in 1:nM){
       this.data <- X[i,,m]
-      out[i,,1:4,m] <- abcd_1attribute(this.data)
+      out[i,,1:4,m] <- abcd_1attribute(this.data, type.in = type.in)
     }
   }
   if (values == "bc") {
-    return(out[,,2:3,])
+    return(out[,, 2:3,])
   } else {
     if (values == "abcd") {
       return(out)
@@ -1201,6 +1275,32 @@ rv.coef <- function(X, Y, method = 1){
       sqrt(sum(XX^2)*sum(YY^2))
   }
   return(c(out))
+}
+
+#' Salton's cosine measure
+#'
+#' Calculate Salton's cosine measure
+#' @name salton
+#' @aliases salton
+#' @usage salton(X, Y)
+#' @param X input matrix (same dimensions as \code{Y})
+#' @param Y input matrix (same dimensions as \code{X})
+#' @return Salton's cosine measure
+#' @export
+#' @encoding UTF-8
+#' @references Salton, G., & McGill, M.J. (1983). \emph{Introduction to Modern 
+#' Information Retrieval}. Toronto: McGraw-Hill.
+#' @examples
+#' # Generate some data
+#' set.seed(123)
+#' X <- matrix(rnorm(8), nrow = 4)
+#' Y <- matrix(rnorm(8), nrow = 4)
+#' 
+#' # get Salton's cosine measure
+#' salton(X, Y)
+salton <- function(X, Y){
+  out <- sum(c(X)*c(Y)) / sqrt(sum(X^2)*sum(Y^2))
+  return(out)
 }
 
 

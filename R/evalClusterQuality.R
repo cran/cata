@@ -76,6 +76,8 @@ homogeneity <- function(X){
 #'    retained in the solution}
 #'    \item{\code{min(NR)} = smallest observed between-cluster non-redundancy}
 #'    \item{\code{Div_G} = overall diversity (coverage)}
+#'    \item{\code{H_G} = overall homogeneity (weighted average of within-cluster
+#'    homogeneity indices)}
 #'    \item{\code{avRV} = average RV coefficient for all between-cluster 
 #'    comparisons}}}
 #'  \item{\code{$clusters} : 
@@ -97,9 +99,10 @@ homogeneity <- function(X){
 #' @export
 #' @encoding UTF-8
 #' @seealso \code{\link[cata]{homogeneity}}
-#' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2021). 
+#' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
 #' Clustering consumers based on product discrimination in check-all-that-apply 
-#' (CATA) data. \emph{Food Quality and Preference}, submitted.
+#' (CATA) data. \emph{Food Quality and Preference}, 104564. 
+#' \doi{10.1016/j.foodqual.2022.104564}.
 #' 
 #' @examples
 #' data(bread)
@@ -111,7 +114,11 @@ evaluateClusterQuality <- function(X, M, alpha = .05, M.order = NULL,
   .withinGroupDiscrim.signif <- function(b, c, 
                                          alternative = "two.sided", alpha=.05){
     if(b+c == 0) return(NA)
-    return(stats::binom.test(b, b+c, alternative = alternative)$p.value < alpha)
+    x <- b
+    if(alternative=="two.sided"){
+      x <- min(b,c)
+    } 
+    return(stats::binom.test(x, b+c, alternative = alternative)$p.value < alpha)
   }
   # end of functions
   
@@ -154,8 +161,9 @@ evaluateClusterQuality <- function(X, M, alpha = .05, M.order = NULL,
   # *** Non-redundancy results per pair of clusters *** 
   ggMat <- matrix(NA, nrow=G, ncol=G)
   
-  # *** RV results per pair of clusters *** 
+  # *** RV & Salton cosine results per pair of clusters *** 
   ggRVMat <- matrix(NA, nrow=G, ncol=G)
+  #ggSaltonMat <- matrix(NA, nrow=G, ncol=G)
   if(G>1){
     for(gg1 in 2:nrow(ggMat)){
       g1.data <- toMatrix(X[which(M==gID[gg1]),,])
@@ -181,19 +189,22 @@ evaluateClusterQuality <- function(X, M, alpha = .05, M.order = NULL,
                              list(g2.data[,2]), sum)[,-1]
         g2.prop <- as.matrix(g2.aggr / length(which(M==gID[gg2])))
         ggRVMat[gg1, gg2] <- rv.coef(g1.prop, g2.prop)
+        # Salton
+        #ggSaltonMat[gg1, gg2] <- salton(g1.prop, g2.prop)
       }
     }
   }
   # *** Solution results *** 
-  Mat <- matrix(NA, nrow=1, ncol=4, dimnames = list(
-    "Solution", c("Pct.b", "min(NR)", "Div_G", "avRV")))
+  Mat <- matrix(NA, nrow=1, ncol=5, dimnames = list(
+    "Solution", c("Pct.b", "min(NR)", "Div_G", "H_G", "avRV")))
   Mat[1,1] <- 100*sum(gMat[,2])/sum(X.bc)
   Mat[1,2] <- ifelse(G>1, min(ggMat, na.rm=TRUE), NA)
   Mat[1,3] <- 100*sum(apply(g.pp.M.two1tail, c(2,3,4), 
                             function(x) (sum(x, na.rm = TRUE)>0)*1))/
     prod(dim(g.pp.M.two1tail)[-1])
+  Mat[1,4] <- sum(gMat[,1] * 0.01*gMat[,4])/sum(gMat[,1])*100
   if(G>1){
-    Mat[1,4] <- mean(ggRVMat[lower.tri((ggRVMat))], na.rm=TRUE)
+    Mat[1,5] <- mean(ggRVMat[lower.tri((ggRVMat))], na.rm=TRUE)
   }
   
   # apply rounding to pairwise tables
@@ -201,14 +212,20 @@ evaluateClusterQuality <- function(X, M, alpha = .05, M.order = NULL,
   diag(reportNR) <- 0
   reportRV <- as.data.frame(ggRVMat)
   diag(reportRV) <- 1
+  # reportSalton <- as.data.frame(ggSaltonMat)
+  # diag(reportSalton) <- 1
   colnames(reportNR) <- colnames(reportRV) <- 
-    rownames(reportNR) <- rownames(reportRV) <- paste0("g",1:G)
+    rownames(reportNR) <- rownames(reportRV) <- 
+    #rownames(reportSalton) <- rownames(reportSalton) <- 
+    paste0("g",1:G)
   
   res <- list(
     solution = Mat, 
     clusters = gMat, 
     nonredundancy.clusterpairs = reportNR,
-    rv.clusterpairs = reportRV)
+    rv.clusterpairs = reportRV #,
+    #salton.clusterpairs = reportSalton
+    )
   class(res) <- "cataQuality"
   if(!quiet){
     .unquote <- function(x, ...){ 
@@ -226,6 +243,8 @@ evaluateClusterQuality <- function(X, M, alpha = .05, M.order = NULL,
       upper.tri(o$nonredundancy.clusterpairs)] <- ""
     o$rv.clusterpairs[
       upper.tri(o$rv.clusterpairs)] <- ""
+    # o$salton.clusterpairs[
+    #   upper.tri(o$salton.clusterpairs)] <- ""
     cat(paste(c("",
                 "Results", 
                 "-------", ""), 
@@ -246,6 +265,11 @@ evaluateClusterQuality <- function(X, M, alpha = .05, M.order = NULL,
                 "-----------------------", ""), 
               collapse = '\n'))
     .unquote(o$rv.clusterpairs, ...)
+    # cat(paste(c("",
+    #             "Salton's cosine per pair of clusters",
+    #             "------------------------------------", ""), 
+    #           collapse = '\n'))
+    # .unquote(o$salton.clusterpairs, ...)
     o <- NULL
   }
   invisible(res)

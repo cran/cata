@@ -30,7 +30,8 @@ bread.bc <- barray(bread$cata)
 getb(bread.bc[1:10,,1,], bread.bc[1:10,,2,])
 }
 \references{
-Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2021). 
+Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
 Clustering consumers based on product discrimination in check-all-that-apply 
-(CATA) data. \emph{Food Quality and Preference}, submitted.
+(CATA) data. \emph{Food Quality and Preference}, 104564. 
+\doi{10.1016/j.foodqual.2022.104564}.
 }
