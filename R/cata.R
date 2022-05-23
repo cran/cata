@@ -1137,7 +1137,7 @@ barray <- function(X, values = "bc", type.in = "binary", type.out = "binary"){
   nM <- dim(X)[3]
   out <- array(0, c(nI, nJ*(nJ-1)/2, 4, nM), 
                dimnames = list(dimnames(X)[[1]], 
-                               apply(t(utils::combn(6,2)), 1, paste0, collapse = "_"), 
+                               apply(t(utils::combn(nJ,2)), 1, paste0, collapse = "_"), 
                                letters[1:4], 
                                colnames(X[1,,])))
   for (i in 1:nI){
