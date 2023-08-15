@@ -275,4 +275,193 @@ evaluateClusterQuality <- function(X, M, alpha = .05, M.order = NULL,
   invisible(res)
 }
 
+#' Adjusted Rand index
+#'
+#' Calculate the adjusted Rand index between two sets of cluster memberships. 
+#' @name ARI
+#' @aliases ARI
+#' @usage ARI(x, y, signif = FALSE, n = 1000)
+#' @param x vector of cluster memberships (integers)
+#' @param y vector of cluster memberships (integers)
+#' @param signif conduct significance test; default is \code{FALSE}
+#' @param n number of replicates in Monte Carlo significance test
+#' @return ari adjusted Rand index
+#' @return nari normalized adjusted Rand index 
+#' @return sim.mean average value of null distribution (should be closed to zero)
+#' @return sim.var variance of null distribution
+#' @return pvalue P value of observed ARI (or NARI) value
+#' @export
+#' @encoding UTF-8
+#' @references Hubert, L., & Arabie, P. (1985). Comparing partitions. 
+#' \emph{Journal of Classification}, 2, 193–218.
+#' \doi{10.1007/BF01908075}.
+#' @references Qannari, E.M., Courcoux, P., & Faye, P. (2014). 
+#' Significance test of the adjusted Rand index. Application to the free sorting 
+#' task. \emph{Food Quality and Preference}, 32, 93-97. 
+#' \doi{10.1016/j.foodqual.2013.05.005}.
+#' 
+#' @examples
+#' x <- sample(1:3, 30, replace = TRUE)
+#' y <- sample(1:3, 30, replace = TRUE)
+#' 
+#' ARI(x, y, signif = FALSE)
+ARI <- function(x, y, signif = FALSE, n = 1000){
+  getARI <- function(x, y){
+    ux <- unique(x)
+    uy <- unique(y)
+    ub <- unique(ux, uy)
+    M <- matrix(0, nrow=length(ub), ncol=length(ub))
+    for(ix in 1:nrow(M)){
+      for(iy in 1:ncol(M)){
+        M[ix, iy] <- sum(x == ub[ix] & y == ub[iy])
+      }
+    }
+    MM <- list(cellsums = c(M),
+               rs = rowSums(M),
+               cs = colSums(M),
+               sum.ij = 0,
+               sum.i = 0,
+               sum.j = 0,
+               cn = choose(length(x), 2))
+    for(i in 1:length(MM$cellsums)){
+      MM$sum.ij <- MM$sum.ij + choose(MM$cellsums[i], 2)
+    }
+    for(i in 1:length(MM$rs)){
+      MM$sum.i <- MM$sum.i + choose(MM$rs[i], 2)
+      MM$sum.j <- MM$sum.j + choose(MM$cs[i], 2)
+    }
+    
+    ari <- (MM$sum.ij - (MM$sum.i * MM$sum.j / MM$cn)) /
+      ((.5 * (MM$sum.i + MM$sum.j)) - (MM$sum.i * MM$sum.j / MM$cn))
+    return(ari)
+  }
+  if(length(y) != length(x)){
+    return("x and y must be equal lengths")
+  }
+  
+  ari <- getARI(x, y)
+  
+  if(signif){
+    xshuff <- yshuff <- matrix(0, nrow=n, ncol=length(x))
+    ari.sim <- rep(0, n)
+    for(i in 1:n){
+      xshuff[i,] <- sample(x, length(x), replace=FALSE)
+      yshuff[i,] <- sample(y, length(x), replace=FALSE)
+      ari.sim[i] <- getARI(xshuff[i,], yshuff[i,])
+    }
+    nari.sim.mean <- mean(ari.sim)
+    nari.sim.var <- stats::var(ari.sim)
+    
+    nari.sim <- (ari.sim - nari.sim.mean) / sqrt(nari.sim.var)
+    nari <- (ari - nari.sim.mean) / sqrt(nari.sim.var)
+    pval <- (sum(nari.sim > nari) + 1)/(n + 1)
+    #pval.one <- (sum(ifelse(1-abc$ari.sim > 1, 1, abc$ari.sim) < ari))/(n + 1)
+    return(list(ari = ari, 
+                nari = nari, 
+                sim.mean = nari.sim.mean,
+                sim.var = nari.sim.var,
+                pvalue = pval))
+  } else {
+    return(list(ari = ari))
+  }
+}
+
+
+
+
+#' Plot variation in retained sensory differentiation
+#'
+#' Plot variation in retained sensory differentiation of cluster memberships
+#' obtained from b-cluster analysis. This plot can be used to help the decision
+#' of how many clusters to retain. 
+#' @name selectionPlot
+#' @aliases selectionPlot
+#' @usage selectionPlot(x, pctB = NULL, x.input = "deltaB", indx = NULL, 
+#' ylab = "change in B (K to G)", xlab = NULL)
+#' @param x input vector which is either deltaB (default; change 
+#' in sensory differentiation retained) or B (sensory differentiation 
+#' retained) if \code{x.input} is \code{"B"}
+#' @param pctB vector of percentage of the total sensory differentiation retained
+#' @param x.input indicates what \code{x} is; either \code{"deltaB"} (default) 
+#' or \code{B}.
+#' @param indx numeric value indicating which point(s) to emphasize
+#' @param ylab label shown on y axis and at selection point
+#' @param xlab label for points along x axis
+#' @export
+#' @encoding UTF-8
+#' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
+#' Clustering consumers based on product discrimination in check-all-that-apply 
+#' (CATA) data. \emph{Food Quality and Preference}, 104564. 
+#' \doi{10.1016/j.foodqual.2022.104564}.
+#'  
+#' @examples
+#' set.seed(123)
+#' G2 <- bcluster.n(bread$cata[1:12, , 1:8], G = 2, runs = 3)
+#' G3 <- bcluster.n(bread$cata[1:12, , 1:8], G = 3, runs = 3)
+#' G4 <- bcluster.n(bread$cata[1:12, , 1:8], G = 4, runs = 3)
+#' 
+#' best.indx <- c(which.max(unlist(lapply(G2, function(x) x$retainedB))),
+#'                which.max(unlist(lapply(G3, function(x) x$retainedB))),
+#'                which.max(unlist(lapply(G4, function(x) x$retainedB))))
+#'                
+#' G1.bc <- barray(bread$cata[1:12, , 1:8])
+#' G1.B <- getb(G1.bc[,,1,], G1.bc[,,2,])
+#' BpctB <- data.frame(retainedB = c(G1.B, 
+#'                                   G2[[best.indx[1]]]$retainedB, 
+#'                                   G3[[best.indx[2]]]$retainedB,
+#'                                   G4[[best.indx[3]]]$retainedB))
+#' BpctB$pctB <- 100*BpctB$retainedB / G2[[1]]$totalB
+#' BpctB$deltaB <- 
+#'            c(100*(1-BpctB$retainedB[-nrow(BpctB)] / BpctB$retainedB[-1]), NA)
+#' BpctB <- BpctB[-nrow(BpctB),]
+#' 
+#' opar <- par(no.readonly=TRUE)
+#' par(mar = rep(5,4))
+#' selectionPlot(BpctB$deltaB, BpctB$pctB, indx = 2)
+#' par(opar)
+selectionPlot <- function(x, pctB = NULL, x.input = "deltaB", indx = NULL,
+                          ylab = "change in B (K to G)", xlab = NULL){
+  #requireNamespace("latex2exp", quietly = TRUE)
+  x <- as.numeric(x)
+  deltaB <- x # by default, x is deltaB
+  if(x.input %in% "B"){
+    deltaB <- 100*(1-x[-length(x)]/x[-1])
+  }
+  pctB <- as.numeric(pctB)
+  nG <- length(deltaB)
+  ylim.deltaB <- c(0, round(max(deltaB)+5,-1))
+  ylim.pctB <- c(0, round(max(pctB)+5,-1))
+  xlim <- c(.5, length(deltaB)+.5)
+  plot(1:nG, deltaB, ylim = ylim.deltaB,
+       xlab = "Change in number of clusters", 
+       ylab = ylab, #TeX("$\\Delta B_{K \\rightarrow G}$%")
+       type = "n", axes = FALSE) #
+  if(is.null(xlab)){
+    xlab <- paste0(2:(nG+1), "->", 1:nG)
+  }
+  graphics::axis(1, labels = xlab, # TeX(paste0(2:(nG+1), "$$\\rightarrow$$", 1:nG))
+       at = 1:nG, las = 1, lwd = 4)
+  graphics::axis(2, at = seq(0, ylim.deltaB[2], by = 10), 
+       labels = seq(0, ylim.deltaB[2], by = 10), lwd = 4, las = 1)
+  graphics::lines(x = 1:nG, y = deltaB, type = "b", pch = 16, lwd = 4)
+  graphics::axis(4, labels = seq(0, ylim.pctB[2], by = 10), 
+       at= seq(0, ylim.pctB[2], by = 10)*ylim.deltaB[2]/ylim.pctB[2], las=1)
+  graphics::axis(3, labels = 1:nG, at = 1:nG, las = 1)
+  graphics::mtext("Retained sensory differentiation (%B)", side = 4, line = 3)
+  graphics::mtext("Number of clusters", side = 3, line = 3)
+  graphics::lines(x = 1:nG, y = pctB*ylim.deltaB[2]/ylim.pctB[2], type = "b", pch = 17) # lty = "dashed", 
+  if(!is.null(indx[1])){
+    indx <- as.numeric(indx)
+    for (i in seq_along(indx)){
+      graphics::points(x=indx[i], y=deltaB[indx[i]], cex = 2.5, pch = 1)
+      graphics::points(x=indx[i], y=pctB[indx[i]]*ylim.deltaB[2]/ylim.pctB[2], cex = 2.5, pch = 1)
+      graphics::text(x = indx[i] + .1, y = mean(deltaB[indx[i]]) + .5, 
+           labels = ylab, #TeX("$\\Delta B_{K \\rightarrow G}$%"), 
+           pos = 4)
+      graphics::text(x = indx[i] + .1, y = (mean(pctB[indx[i]]) - 1)*ylim.deltaB[2]/ylim.pctB[2], 
+           labels = "%B", pos = 4)
+    }
+  }
+  invisible()
+}
 

@@ -58,15 +58,19 @@ bcluster <- function(X, inspect = TRUE, inspect.plot = TRUE,
                       seed = seed,  verbose = verbose)[[1]]
   }
   if(algorithm %in% c("n", "2")){
-    if(is.null(G)) return(print("G must be specified"))
+    if(is.null(G)){
+      return(print("G must be specified"))
+    } 
+    if(length(G) > 1){
+      return(print("G cannot be longer than one"))
+    }
     out <- bcluster.n(X = X, G = G, M = M, measure = measure, 
                       max.iter = max.iter, tol = tol, runs = runs,
                       seed = seed, verbose = verbose)
   }
   out <- list(runs = out)
   if((runs > 1) & inspect){
-    out$inspect <- inspect(out, G = G, maxB = TRUE, 
-                           inspect.plot = inspect.plot)
+    out$inspect <- inspect(out, G = G, inspect.plot = inspect.plot)
   }
   invisible(out)
 }
@@ -400,7 +404,8 @@ bcluster.h <- function(X, measure = "b", runs = 1,
 #' # b-cluster analysis on the first 10 consumers and the first 6 attributes
 #' (b <- bcluster.n(bread$cata[1:10, , 1:6], G=2))
 bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
-                       X.input = "data", tol = exp(-32), seed = 2021, verbose = FALSE){
+                       X.input = "data", tol = exp(-32), seed = 2021, 
+                       verbose = FALSE){
   bcluster.call <- match.call()
   if(!is.null(M) & runs > 1){
     print("Cluster memberships in M will be the starting point for run 1.")
@@ -1300,6 +1305,93 @@ rv.coef <- function(X, Y, method = 1){
 #' salton(X, Y)
 salton <- function(X, Y){
   out <- sum(c(X)*c(Y)) / sqrt(sum(X^2)*sum(Y^2))
+  return(out)
+}
+
+
+#' Apply top-k box coding to scale data
+#'
+#' Apply top-k box coding to scale data. Using defaults give top-2 box (T2B) coding.
+#' @name code.topk
+#' @aliases code.topk
+#' @usage code.topk(X, zero.below = 8, one.above = 7)
+#' @param X input matrix
+#' @param zero.below default is \code{8}; values below this numeric threshold will be coded \code{0}; use \code{NULL} if there is no such threshold
+#' @param one.above default is \code{7}; values above this numeric threshold will be coded \code{1}; use \code{NULL} if there is no such threshold
+#' @return matrix \code{X} with top-k coding applied
+#' @export
+#' @encoding UTF-8
+#' @references Castura, J.C., Meyners, M., Pohjanheimo, T., Varela, P., & Næs, T. (2023). 
+#' An approach for clustering consumers by their top-box and top-choice responses. 
+#' \emph{Journal of Sensory Studies}, e12860. \doi{10.1111/joss.12860}
+#' @examples
+#' # Generate some data
+#' set.seed(123)
+#' X <- matrix(sample(1:9, 400, replace = TRUE), nrow = 5)
+#' 
+#' # apply top-2 box (T2B) coding
+#' code.topk(X, zero.below = 8, one.above = 7)
+code.topk <- function(X, zero.below = 8, one.above = 7){
+  Y <- X
+  if(!is.null(zero.below) && !is.null(one.above)){
+    if(zero.below != one.above + 1){
+      return(
+        print("zero.below should be equal to one.above+1 if both specified"))
+    }
+  }
+  if(!is.null(zero.below)){
+    Y[Y < zero.below] <- 0
+  }
+  if(!is.null(one.above)){
+    Y[Y > one.above] <- 1
+  }
+  return(Y)
+}
+
+#' Apply top-c choices coding to a vector of scale data from a respondent
+#'
+#' Apply top-c choices coding to a vector of scale data from a respondent
+#' @name topc
+#' @aliases topc
+#' @usage topc(x, c = 2, coding = "B")
+#' @param x input matrix
+#' @param c number of top choices considered to be 'success'; other choices are 
+#' considered to be 'failure' and are coded \code{0}
+#' @param coding \code{"B"} (default) codes all successes as \code{1}; 
+#' \code{"N"} codes all successes with their numeric coding
+#' @return matrix \code{X} with top-k coding applied
+#' @export
+#' @encoding UTF-8
+#' @references Castura, J.C., Meyners, M., Pohjanheimo, T., Varela, P., & Næs, T. (2023). 
+#' An approach for clustering consumers by their top-box and top-choice responses. 
+#' \emph{Journal of Sensory Studies}, e12860. \doi{10.1111/joss.12860}
+#' @examples
+#' # Generate some data
+#' set.seed(123)
+#' X <- matrix(sample(1:9, 400, replace = TRUE), nrow = 5)
+#' 
+#' # apply top-2 choice (T2C) coding
+#' apply(X, 1, topc)
+topc <- function(x, c = 2, coding = "B"){
+  #anything with a value of 0 is special, so give in the max value
+  y <- max(x)-x+1
+  ranky <- rank(y, ties.method = "average")
+  ranky.u <- sort(unique(ranky))
+  it <- 0
+  indx <- c()
+  nc <- 0
+  while(nc < c){
+    it <- it + 1
+    indx <- c(indx, which(ranky == ranky.u[it]))
+    nc <- length(indx)
+  }
+  out <- x*0
+  if(coding %in% "B"){
+    out[indx] <- 1
+  }
+  if(coding %in% "N"){
+    out[indx] <- x[indx]
+  }
   return(out)
 }
 
