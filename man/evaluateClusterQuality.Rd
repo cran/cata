@@ -10,7 +10,7 @@ quiet = FALSE, digits = getOption("digits"), ...)
 }
 \arguments{
 \item{X}{three-way array; the \code{I, J, M} array has \code{I}
-assessors, \code{J} products, code{M} attributes where CATA data have values 
+assessors, \code{J} products, \code{M} attributes where CATA data have values 
 \code{0} (not checked) and \code{1} (checked)}
 
 \item{M}{cluster memberships}
@@ -66,7 +66,7 @@ and within-cluster homogeneity.
 }
 \examples{
 data(bread)
-evaluateClusterQuality(bread$cata[1:14,,1:6], M = rep(1:2, each = 7))
+evaluateClusterQuality(bread$cata[1:8,,1:5], M = rep(1:2, each = 4))
 }
 \references{
 Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 

@@ -9,7 +9,7 @@ inspect(X, G = 2, bestB = NULL, bestM = NULL, inspect.plot = TRUE)
 }
 \arguments{
 \item{X}{three-way array; the \code{I, J, M} array has \code{I}
-assessors, \code{J} products, code{M} attributes where CATA data have values 
+assessors, \code{J} products, \code{M} attributes where CATA data have values 
 \code{0} (not checked) and \code{1} (checked)}
 
 \item{G}{number of clusters (required for non-hierarchical algorithm)}
@@ -44,7 +44,7 @@ retained and recurrence rate.
 \examples{
 data(bread)
 
-res <- bcluster.n(bread$cata[1:10, , 1:8], G = 2, runs = 5)
+res <- bcluster.n(bread$cata[1:8, , 1:5], G = 2, runs = 3)
 inspect(res)
 }
 \references{

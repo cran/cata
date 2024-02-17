@@ -9,7 +9,7 @@ homogeneity(X)
 }
 \arguments{
 \item{X}{three-way array; the \code{I, J, M} array has \code{I}
-assessors, \code{J} products, code{M} attributes where CATA data have values 
+assessors, \code{J} products, \code{M} attributes where CATA data have values 
 \code{0} (not checked) and \code{1} (checked)}
 }
 \value{

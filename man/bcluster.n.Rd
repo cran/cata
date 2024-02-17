@@ -7,7 +7,7 @@
 strategy}
 \usage{
 bcluster.n(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
-X.input = "data", tol = exp(-32), seed = 2021, verbose = FALSE)
+X.input = "data", tol = exp(-32), seed = 2021)
 }
 \arguments{
 \item{X}{CATA data organized in a three-way array (assessors, products, 
@@ -30,8 +30,6 @@ obtained from the function \code{\link[cata]{barray}}}
 \code{tol} (default: \code{exp(-32)})}
 
 \item{seed}{for reproducibility (default is \code{2021})}
-
-\item{verbose}{maximum number of iterations}
 }
 \value{
 An object of class \code{bclust.n} (or a list of such objects 
@@ -54,8 +52,8 @@ reach a local maximum in sensory differentiation retained.
 \examples{
 data(bread)
 
-# b-cluster analysis on the first 10 consumers and the first 6 attributes
-(b <- bcluster.n(bread$cata[1:10, , 1:6], G=2))
+# b-cluster analysis on the first 8 consumers and the first 5 attributes
+(b <- bcluster.n(bread$cata[1:8, , 1:5], G=2))
 }
 \references{
 Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 

@@ -36,8 +36,8 @@ attributes)
 \examples{
 data(bread)
 
-# Get the 4d array of CATA differences for the first 10 consumers
-b <- barray(bread$cata[1:10,,])
+# Get the 4d array of CATA differences for the first 8 consumers
+b <- barray(bread$cata[1:8,,])
 }
 \references{
 Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 

@@ -5,7 +5,7 @@
 \alias{getb}
 \title{Calculate the b-measure}
 \usage{
-getb(X.b, X.c)
+getb(X.b, X.c, oneI = FALSE, oneM = FALSE)
 }
 \arguments{
 \item{X.b}{three-way (\code{I, J(J-1)/2, M}) array with 
@@ -15,6 +15,12 @@ attributes, where values are counts of type \code{b} from the function
 
 \item{X.c}{array of same dimension as \code{X.b}, where values are counts of 
 type \code{b} from the function \code{\link[cata]{barray}})}
+
+\item{oneI}{indicates whether calculation is for one assessor (default: 
+\code{FALSE})}
+
+\item{oneM}{indicates whether calculation is for one attribute (default: 
+\code{FALSE})}
 }
 \value{
 b-measure
@@ -26,8 +32,8 @@ differentiation retained.
 \examples{
 data(bread)
 
-bread.bc <- barray(bread$cata)
-getb(bread.bc[1:10,,1,], bread.bc[1:10,,2,])
+bread.bc <- barray(bread$cata[1:8,,1:5])
+getb(bread.bc[,,1,], bread.bc[,,2,])
 }
 \references{
 Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 

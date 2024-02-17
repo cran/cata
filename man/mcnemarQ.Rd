@@ -30,8 +30,8 @@ can be conducted after Cochran's Q test.
 data(bread)
 
 # McNemar's exact pairwise test for all product pairs
-# on the first 40 consumers and the first attribute ("Fresh")
-mcnemarQ(bread$cata[1:40,,1])
+# on the first 25 consumers and the first attribute ("Fresh")
+mcnemarQ(bread$cata[1:25,,1])
 }
 \references{
 Cochran, W. G. (1950). The comparison of percentages in matched samples. 

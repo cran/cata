@@ -24,7 +24,7 @@ products, \code{M} attributes) to a two-dimensional matrix
 \examples{
 data(bread)
 
-# convert CATA results from the first 10 consumers and the first 4 attributes
+# convert CATA results from the first 8 consumers and the first 4 attributes
 # to a wide matrix
-toWideMatrix(bread$cata[1:10,,1:4])
+toWideMatrix(bread$cata[1:8,,1:4])
 }

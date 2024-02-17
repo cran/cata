@@ -6,8 +6,8 @@
 \title{Wrapper function for b-cluster analysis}
 \usage{
 bcluster(X, inspect = TRUE, inspect.plot = TRUE, algorithm = "n", 
-measure = "b", G = NULL, M = NULL, max.iter = 500, tol = exp(-32), 
-runs = 1, seed = 2021, verbose = FALSE)
+measure = "b", G = NULL, M = NULL, max.iter = 500, X.input = "data", 
+tol = exp(-32), runs = 1, seed = 2021)
 }
 \arguments{
 \item{X}{three-way array with \code{I} assessors, \code{J} products, 
@@ -32,14 +32,16 @@ Cochran's Q test}
 
 \item{max.iter}{maximum number of iteration allowed (default \code{500})}
 
+\item{X.input}{available only for non-hierarchical algorithm; its value is
+either \code{"data"} (default) or \code{"bc"} if \code{X} is
+obtained from the function \code{\link[cata]{barray}}}
+
 \item{tol}{non-hierarchical algorithm stops if variance over 5 iterations is
 less than \code{tol} (default: \code{exp(-32)})}
 
 \item{runs}{number of runs (defaults to \code{1})}
 
 \item{seed}{for reproducibility (default is \code{2021})}
-
-\item{verbose}{maximum number of iterations}
 }
 \value{
 list with elements:
@@ -58,10 +60,10 @@ there are multiple runs.
 \examples{
 data(bread)
 
-# b-cluster analysis on the first 14 consumers and the first 6 attributes
-(b1 <- bcluster(bread$cata[1:14,,1:6], G=2))
-# identical to: 
-# (b2 <- bcluster.n(bread$cata[1:10,,1:6], G=2))
+# b-cluster analysis on the first 8 consumers and the first 5 attributes
+(b1 <- bcluster(bread$cata[1:8,,1:5], G=2, seed = 123))
+# Since the seed is the same, the result will be identical to
+# (b2 <- bcluster.n(bread$cata[1:8,,1:5], G=2, seed = 123))
 }
 \references{
 Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 

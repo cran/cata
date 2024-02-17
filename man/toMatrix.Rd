@@ -29,7 +29,7 @@ attributes) columns, optionally preceded by two columns of row headers.
 \examples{
 data(bread)
 
-# convert CATA results from the first 10 consumers and the first 4 attributes
+# convert CATA results from the first 8 consumers and the first 4 attributes
 # to a tall matrix
-toMatrix(bread$cata[1:10,,1:4])
+toMatrix(bread$cata[1:8,,1:4])
 }

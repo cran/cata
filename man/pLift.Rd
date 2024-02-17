@@ -27,13 +27,13 @@ hedonic response when CATA attribute is not checked.
 \examples{
 data(bread)
 
-# penalty lift, based only on the first 20 consumers
+# penalty lift, based only on the first 12 consumers
 
 # for the first attribute ("Fresh")
-pLift(bread$cata[1:20,,1], bread$liking[1:20, ]) 
+pLift(bread$cata[1:12,,1], bread$liking[1:12, ]) 
 
 # for the first 3  attributes
-pLift(bread$cata[1:20,,1:3], bread$liking[1:20, ]) 
+pLift(bread$cata[1:12,,1:3], bread$liking[1:12, ]) 
 }
 \references{
 Meyners, M., Castura, J.C., & Carr, B.T. (2013). Existing and new 

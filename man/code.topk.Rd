@@ -23,7 +23,7 @@ Apply top-k box coding to scale data. Using defaults give top-2 box (T2B) coding
 \examples{
 # Generate some data
 set.seed(123)
-X <- matrix(sample(1:9, 400, replace = TRUE), nrow = 5)
+X <- matrix(sample(1:9, 100, replace = TRUE), nrow = 5)
 
 # apply top-2 box (T2B) coding
 code.topk(X, zero.below = 8, one.above = 7)

@@ -31,15 +31,15 @@ of how many clusters to retain.
 }
 \examples{
 set.seed(123)
-G2 <- bcluster.n(bread$cata[1:12, , 1:8], G = 2, runs = 3)
-G3 <- bcluster.n(bread$cata[1:12, , 1:8], G = 3, runs = 3)
-G4 <- bcluster.n(bread$cata[1:12, , 1:8], G = 4, runs = 3)
+G2 <- bcluster.n(bread$cata[1:8, , 1:5], G = 2, runs = 3)
+G3 <- bcluster.n(bread$cata[1:8, , 1:5], G = 3, runs = 3)
+G4 <- bcluster.n(bread$cata[1:8, , 1:5], G = 4, runs = 3)
 
 best.indx <- c(which.max(unlist(lapply(G2, function(x) x$retainedB))),
                which.max(unlist(lapply(G3, function(x) x$retainedB))),
                which.max(unlist(lapply(G4, function(x) x$retainedB))))
                
-G1.bc <- barray(bread$cata[1:12, , 1:8])
+G1.bc <- barray(bread$cata[1:8, , 1:5])
 G1.B <- getb(G1.bc[,,1,], G1.bc[,,2,])
 BpctB <- data.frame(retainedB = c(G1.B, 
                                   G2[[best.indx[1]]]$retainedB, 

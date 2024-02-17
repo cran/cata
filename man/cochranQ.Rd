@@ -29,8 +29,8 @@ product proportions are not all equal.
 \examples{
 data(bread)
 
-# Cochran's Q test on the first 40 consumers on the first attribute ("Fresh")
-cochranQ(bread$cata[1:40,,1])
+# Cochran's Q test on the first 25 consumers on the first attribute ("Fresh")
+cochranQ(bread$cata[1:25,,1])
 }
 \references{
 Cochran, W. G. (1950). The comparison of percentages in matched samples. 

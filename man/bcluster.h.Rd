@@ -5,7 +5,7 @@
 \alias{bcluster.h}
 \title{b-cluster analysis by hierarchical agglomerative strategy}
 \usage{
-bcluster.h(X, measure = "b", runs = 1, seed = 2021,  verbose = FALSE)
+bcluster.h(X, measure = "b", runs = 1, seed = 2021)
 }
 \arguments{
 \item{X}{three-way array; the \code{I, J, M} array has \code{I}
@@ -18,8 +18,6 @@ assessors, \code{J} products, \code{M} attributes where CATA data have values
 runs for a real application)}
 
 \item{seed}{for reproducibility (default is \code{2021})}
-
-\item{verbose}{maximum number of iterations}
 }
 \value{
 An object of class \code{hclust} from hierarchical b-cluster 
@@ -35,12 +33,12 @@ strategy.
 \examples{
 data(bread)
 
-# hierarchical b-cluster analysis on first 10 consumers and first 6 attributes
-b <- bcluster.h(bread$cata[1:14,,1:6])
+# hierarchical b-cluster analysis on first 8 consumers and first 5 attributes
+b <- bcluster.h(bread$cata[1:8,,1:5])
 
 plot(as.dendrogram(b), 
   main = "Hierarchical b-cluster analysis", 
-  sub = "10 bread consumers on 6 attributes")
+  sub = "8 bread consumers on 5 attributes")
 }
 \references{
 Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 

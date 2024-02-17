@@ -31,8 +31,8 @@ pvalue P value of observed ARI (or NARI) value
 Calculate the adjusted Rand index between two sets of cluster memberships.
 }
 \examples{
-x <- sample(1:3, 30, replace = TRUE)
-y <- sample(1:3, 30, replace = TRUE)
+x <- sample(1:3, 20, replace = TRUE)
+y <- sample(1:3, 20, replace = TRUE)
 
 ARI(x, y, signif = FALSE)
 }

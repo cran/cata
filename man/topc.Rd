@@ -25,7 +25,7 @@ Apply top-c choices coding to a vector of scale data from a respondent
 \examples{
 # Generate some data
 set.seed(123)
-X <- matrix(sample(1:9, 400, replace = TRUE), nrow = 5)
+X <- matrix(sample(1:9, 100, replace = TRUE), nrow = 5)
 
 # apply top-2 choice (T2C) coding
 apply(X, 1, topc)

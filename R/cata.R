@@ -7,8 +7,8 @@
 #' @name bcluster
 #' @aliases bcluster
 #' @usage bcluster(X, inspect = TRUE, inspect.plot = TRUE, algorithm = "n", 
-#' measure = "b", G = NULL, M = NULL, max.iter = 500, tol = exp(-32), 
-#' runs = 1, seed = 2021, verbose = FALSE)
+#' measure = "b", G = NULL, M = NULL, max.iter = 500, X.input = "data", 
+#' tol = exp(-32), runs = 1, seed = 2021)
 #' @param X three-way array with \code{I} assessors, \code{J} products, 
 #' \code{M} attributes where CATA data have values \code{0} (not checked) and 
 #' \code{1} (checked)
@@ -23,11 +23,13 @@
 #' @param G number of clusters (required for non-hierarchical algorithm)
 #' @param M initial cluster memberships
 #' @param max.iter maximum number of iteration allowed (default \code{500})
+#' @param X.input available only for non-hierarchical algorithm; its value is
+#' either \code{"data"} (default) or \code{"bc"} if \code{X} is
+#' obtained from the function \code{\link[cata]{barray}} 
 #' @param tol non-hierarchical algorithm stops if variance over 5 iterations is
 #' less than \code{tol} (default: \code{exp(-32)})
 #' @param runs number of runs (defaults to \code{1})
 #' @param seed for reproducibility (default is \code{2021})
-#' @param verbose maximum number of iterations 
 #' @return list with elements:
 #' \itemize{
 #' \item{\code{runs} : b-cluster analysis results from 
@@ -44,18 +46,21 @@
 #' @examples
 #' data(bread)
 #' 
-#' # b-cluster analysis on the first 14 consumers and the first 6 attributes
-#' (b1 <- bcluster(bread$cata[1:14,,1:6], G=2))
-#' # identical to: 
-#' # (b2 <- bcluster.n(bread$cata[1:10,,1:6], G=2))
+#' # b-cluster analysis on the first 8 consumers and the first 5 attributes
+#' (b1 <- bcluster(bread$cata[1:8,,1:5], G=2, seed = 123))
+#' # Since the seed is the same, the result will be identical to
+#' # (b2 <- bcluster.n(bread$cata[1:8,,1:5], G=2, seed = 123))
 bcluster <- function(X, inspect = TRUE, inspect.plot = TRUE,
                      algorithm = "n", measure = "b",
-                     G = NULL, M = NULL, max.iter = 500,
-                     tol = exp(-32), runs = 1, seed = 2021, verbose = FALSE){
+                     G = NULL, M = NULL, max.iter = 500, X.input = "data", 
+                     tol = exp(-32), runs = 1, seed = 2021){
   if(is.null(X)) return(print("X must be an array"))
   if(algorithm %in% c("h", "1")){
+    if(X.input %in% "bc"){
+      return(invisible("X.input 'bc' not available for hierarchical algorithm"))
+    }
     out <- bcluster.h(X = X, measure = measure, runs = runs, 
-                      seed = seed,  verbose = verbose)[[1]]
+                      seed = seed)
   }
   if(algorithm %in% c("n", "2")){
     if(is.null(G)){
@@ -65,12 +70,19 @@ bcluster <- function(X, inspect = TRUE, inspect.plot = TRUE,
       return(print("G cannot be longer than one"))
     }
     out <- bcluster.n(X = X, G = G, M = M, measure = measure, 
-                      max.iter = max.iter, tol = tol, runs = runs,
-                      seed = seed, verbose = verbose)
+                      max.iter = max.iter, X.input = X.input,
+                      tol = tol, runs = runs,
+                      seed = seed)
   }
   out <- list(runs = out)
   if((runs > 1) & inspect){
-    out$inspect <- inspect(out, G = G, inspect.plot = inspect.plot)
+    if(algorithm %in% "h"){
+      if(is.null(G)){
+        print("Number of groups (G) not provided. Defaulting to G=2 groups.")
+        G <- 2
+      }
+    }
+    out$inspect <- inspect(out$runs, G = G, inspect.plot = inspect.plot)
   }
   invisible(out)
 }
@@ -81,7 +93,7 @@ bcluster <- function(X, inspect = TRUE, inspect.plot = TRUE,
 #' strategy. 
 #' @name bcluster.h
 #' @aliases bcluster.h
-#' @usage bcluster.h(X, measure = "b", runs = 1, seed = 2021,  verbose = FALSE)
+#' @usage bcluster.h(X, measure = "b", runs = 1, seed = 2021)
 #' @param X three-way array; the \code{I, J, M} array has \code{I}
 #' assessors, \code{J} products, \code{M} attributes where CATA data have values 
 #' \code{0} (not checked) and \code{1} (checked)
@@ -89,7 +101,6 @@ bcluster <- function(X, inspect = TRUE, inspect.plot = TRUE,
 #' @param runs number of runs (defaults to \code{1}; use a higher number of
 #' runs for a real application)
 #' @param seed for reproducibility (default is \code{2021})
-#' @param verbose maximum number of iterations 
 #' @return An object of class \code{hclust} from hierarchical b-cluster 
 #' analysis results (a list of such objects if \code{runs>1}), where each \code{hclust} 
 #' object has the structure described in \code{\link[stats]{hclust}} as well as 
@@ -104,14 +115,20 @@ bcluster <- function(X, inspect = TRUE, inspect.plot = TRUE,
 #' @examples
 #' data(bread)
 #' 
-#' # hierarchical b-cluster analysis on first 10 consumers and first 6 attributes
-#' b <- bcluster.h(bread$cata[1:14,,1:6])
+#' # hierarchical b-cluster analysis on first 8 consumers and first 5 attributes
+#' b <- bcluster.h(bread$cata[1:8,,1:5])
 #' 
 #' plot(as.dendrogram(b), 
 #'   main = "Hierarchical b-cluster analysis", 
-#'   sub = "10 bread consumers on 6 attributes")
+#'   sub = "8 bread consumers on 5 attributes")
 bcluster.h <- function(X, measure = "b", runs = 1, 
-                       seed = 2021,  verbose = FALSE){
+                       seed = 2021){
+  ## DEBUG
+  # X = bread$cata[1:14,,1]
+  # measure = "b"
+  # runs = 1
+  # seed = 2021
+  verbose = FALSE
   bcluster.call <- match.call()
   if(measure != "b"){
     return(print("Only the b-measure is implemented"))
@@ -129,11 +146,33 @@ bcluster.h <- function(X, measure = "b", runs = 1,
   #   X.bc      : bc array
   #   b         : vector of b-measures
   #   sensDiff  : mN columns with 1 if differentiated and 0 if not
-  init.candidates <- function(cnd1.indx, cnd2.indx, X.bc, b, sensDiff){
+  init.candidates <- function(cnd1.indx, cnd2.indx, X.bc, b, sensDiff, 
+                              X.bc.dim = NULL){
+    # DEBUG
+    # cnd1.indx = df.cnd$cnd1
+    # cnd2.indx = df.cnd$cnd2
+    # X.bc = X.bc
+    # b = df.curr$b
+    # sensDiff = df.curr[,-c(1:3)]
+    # X.bc.dim = X.bc.dim
+    if(!is.null(X.bc.dim[1])){
+      if(!all.equal(dim(X.bc), X.bc.dim)){
+        X.bc <- array(X.bc, X.bc.dim)
+      }  
+    }
     new.b <- getb(X.bc[c(cnd1.indx, cnd2.indx),,1,], 
-                  X.bc[c(cnd1.indx, cnd2.indx),,2,])
+                  X.bc[c(cnd1.indx, cnd2.indx),,2,],
+                  oneI = ifelse(length(c(cnd1.indx, cnd2.indx))==1, TRUE, FALSE),
+                  oneM = ifelse(X.bc.dim[length(X.bc.dim)]==1, TRUE, FALSE))
+    if(X.bc.dim[length(X.bc.dim)]==1){
+      sensDiff <- matrix(sensDiff, ncol=1)
+      sensDiff.o <- sum(colSums(matrix(sensDiff[c(cnd1.indx, cnd2.indx), ], 
+                                       ncol=1))>1)
+    } else {
+      sensDiff.o <- sum(colSums(sensDiff[c(cnd1.indx, cnd2.indx), ])>1)
+    }
     return(c(new.b, new.b - b[cnd1.indx] - b[cnd2.indx],
-             sum(colSums(sensDiff[c(cnd1.indx, cnd2.indx), ])>1)))
+             sensDiff.o))
   }
   # check if id being merged is a singleton (or not)
   isSingleton <- function(id, g.curr){
@@ -147,16 +186,31 @@ bcluster.h <- function(X, measure = "b", runs = 1,
   #   b         : vector of b-measures
   #   sensDiff  : mN columns with 1 if differentiated and 0 if not
   update.candidates <- function(cnd1.indx, cnd2.indx, X.bc, 
-                                group.keys, b, sensDiff){
+                                group.keys, b, sensDiff, X.bc.dim = NULL){
+    if(!is.null(X.bc.dim[1])){
+      if(!all.equal(dim(X.bc), X.bc.dim)){
+          X.bc <- array(X.bc, X.bc.dim)
+      }  
+    }
     g1.keys <- group.keys$start.g[group.keys$curr.g == cnd1.indx]
     g2.keys <- group.keys$start.g[group.keys$curr.g == cnd2.indx]
     new.b <- getb(X.bc[c(g1.keys, g2.keys),,1,], 
-                  X.bc[c(g1.keys, g2.keys),,2,])
+                  X.bc[c(g1.keys, g2.keys),,2,],
+                  oneI = ifelse(length(c(g1.keys, g2.keys))==1, TRUE, FALSE),
+                  oneM = ifelse(X.bc.dim[length(X.bc.dim)]==1, TRUE, FALSE))
+    if(X.bc.dim[length(X.bc.dim)]==1){
+      sensDiff <- matrix(sensDiff, ncol=1)
+      sensDiff.o <- sum(colSums(matrix(sensDiff[c(group.keys$curr.g 
+                                           %in% c(cnd1.indx, cnd2.indx)), ],
+                                       ncol=1))>1)
+    } else {
+      sensDiff.o <- sum(colSums(sensDiff[c(group.keys$curr.g 
+                                           %in% c(cnd1.indx, cnd2.indx)), ])>1)
+    }
     return(c(new.b, 
              new.b - b[group.keys$start.g == cnd1.indx] - 
                b[group.keys$start.g == cnd2.indx],
-             sum(colSums(sensDiff[c(group.keys$curr.g 
-                                    %in% c(cnd1.indx, cnd2.indx)), ])>1)))
+             sensDiff.o))
   }
   # create hclust merge matrix from M, which is my progress.track object
   write.merge <- function(M){
@@ -180,8 +234,17 @@ bcluster.h <- function(X, measure = "b", runs = 1,
   
   nI <- dim(X)[1]
   nJ <- dim(X)[2]
+  if(length(dim(X))==2){
+    X <- array(X, c(dim(X)[1], dim(X)[2], 1),
+               dimnames = list(dimnames(X)[[1]], dimnames(X)[[2]], "data"))
+  } 
   nM <- dim(X)[3]
   X.bc <- barray(X)
+  if(length(dim(X.bc))==3){
+    X.bc <- array(X.bc, c(dim(X.bc)[1], dim(X.bc)[2], 2, 1),
+               dimnames = list(dimnames(X.bc)[[1]], dimnames(X.bc)[[2]],
+                              letters[2:3], "data"))
+  } 
   nJJ <- dim(X.bc)[2]
   
   if(is.null(dimnames(X.bc)[[1]])) dimnames(X.bc)[[1]] <- 1:nI
@@ -189,13 +252,14 @@ bcluster.h <- function(X, measure = "b", runs = 1,
   if(is.null(dimnames(X.bc)[[3]])) dimnames(X.bc)[[2]] <- c("n10", "n01")
   if(is.null(dimnames(X.bc)[[4]])) dimnames(X.bc)[[4]] <- 1:nM
   
+  X.bc.dim <- dim(X.bc)
+  
   progress.track <- data.frame(iter = 1:(nI-1), 
                                cons1 = NA, cons2 = NA, 
                                isSingleton1 = NA, isSingleton2 = NA,
                                C = NA,
                                n.tiebreak.sensDiff = NA, 
                                n.tiebreak.rand = NA)
-  
   # df.curr
   #   $start.g   consumer start group indx
   #   $curr.g    current group indx
@@ -220,30 +284,26 @@ bcluster.h <- function(X, measure = "b", runs = 1,
   df.cnd[, 3:5] <- t(mapply(init.candidates, 
                             cnd1.indx = df.cnd$cnd1, cnd2.indx = df.cnd$cnd2, 
                             MoreArgs = list(X.bc = X.bc, b = df.curr$b, 
-                                            sensDiff = df.curr[,-c(1:3)])))
+                                            sensDiff = df.curr[,-c(1:3)],
+                                            X.bc.dim = X.bc.dim)))
   if(runs>1){
     # cache calculated start values for future runs
     cache <- list(progress.track = progress.track,
                   df.cnd = df.cnd,
                   df.curr = df.curr)
   }
-  
   hclust.list <- list()
   if(verbose){
     track.list <- list()
   }
-  
   for(this.run in 1:runs){
-    
     set.seed(seed + this.run)
-    
     if(this.run > 1){
       # restore from cache
       progress.track <- cache$progress.track
       df.cnd <- cache$df.cnd
       df.curr <- cache$df.curr
     }
-    
     # track output
     hclust.list[[this.run]] <- list()
     if(verbose){
@@ -253,7 +313,6 @@ bcluster.h <- function(X, measure = "b", runs = 1,
         list(df.cnd = df.cnd, df.curr = df.curr)
       hclust.list[[this.run]]$track.list.by.iter <- list()
     }
-    
     for(iter in 1:(nI-1)){
       if(verbose){
         # Write state to track.list  
@@ -281,7 +340,6 @@ bcluster.h <- function(X, measure = "b", runs = 1,
           isSingleton(df.cnd$cnd1[g.indx], df.curr[,1:2]),
           isSingleton(df.cnd$cnd2[g.indx], df.curr[,1:2]),
           df.cnd$C[g.indx], length(best.indx)-1, length(best.indx2)-1)
-      
       # Post-merge updates
       # Update the current group of second group (progress.track$cons2[iter])
       df.curr$curr.g[which(df.curr$curr.g == progress.track$cons2[iter])] <-
@@ -292,10 +350,14 @@ bcluster.h <- function(X, measure = "b", runs = 1,
       # Update number of attributes differentiated by new group
       df.curr[which(df.curr$start.g == 
                       progress.track$cons1[iter]), -c(1:3)] <-
-        (colSums(df.curr[
+        ifelse(nM > 1, (colSums(df.curr[
           which(df.curr$curr.g %in% 
                   c(progress.track$cons1[iter],
-                    progress.track$cons2[iter])), -c(1:3)])>0)*1
+                    progress.track$cons2[iter])), -c(1:3)])>0)*1,
+          (colSums(matrix(df.curr[
+            which(df.curr$curr.g %in% 
+                    c(progress.track$cons1[iter],
+                      progress.track$cons2[iter])), -c(1:3)], ncol=nM))>0)*1)
       # Remove rows for second group from df.cnd
       df.cnd <- df.cnd[-c(which(df.cnd$cnd1 == progress.track$cons2[iter]),
                           which(df.cnd$cnd2 == progress.track$cons2[iter])),]
@@ -310,7 +372,8 @@ bcluster.h <- function(X, measure = "b", runs = 1,
                    list(X.bc = X.bc, 
                         group.keys = df.curr[,1:2],
                         b = df.curr$b,
-                        sensDiff = df.curr[, -c(1:3)])))  
+                        sensDiff = df.curr[, -c(1:3)],
+                        X.bc.dim = X.bc.dim)))  
     }
     # All iterations complete so create the hclust object
     hc.obj <- structure(list(
@@ -332,7 +395,6 @@ bcluster.h <- function(X, measure = "b", runs = 1,
     # }
     class(hc.obj) <- "hclust"
     hclust.list[[this.run]] <- hc.obj
-    
     if(verbose){
       # Write state to track.list  
       hclust.list[[this.run]]$track.list.by.iter[[
@@ -366,7 +428,7 @@ bcluster.h <- function(X, measure = "b", runs = 1,
 #' @name bcluster.n
 #' @aliases bcluster.n
 #' @usage bcluster.n(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
-#' X.input = "data", tol = exp(-32), seed = 2021, verbose = FALSE)
+#' X.input = "data", tol = exp(-32), seed = 2021)
 #' @param X CATA data organized in a three-way array (assessors, products, 
 #' attributes)
 #' @param G number of clusters (required for non-hierarchical algorithm)
@@ -379,7 +441,6 @@ bcluster.h <- function(X, measure = "b", runs = 1,
 #' @param tol algorithm stops if variance over 5 iterations is less than 
 #' \code{tol} (default: \code{exp(-32)})
 #' @param seed for reproducibility (default is \code{2021})
-#' @param verbose maximum number of iterations 
 #' @return An object of class \code{bclust.n} (or a list of such objects 
 #' if \code{runs>1}), where each such object has the following components: 
 #' \itemize{
@@ -401,11 +462,20 @@ bcluster.h <- function(X, measure = "b", runs = 1,
 #' @examples
 #' data(bread)
 #' 
-#' # b-cluster analysis on the first 10 consumers and the first 6 attributes
-#' (b <- bcluster.n(bread$cata[1:10, , 1:6], G=2))
+#' # b-cluster analysis on the first 8 consumers and the first 5 attributes
+#' (b <- bcluster.n(bread$cata[1:8, , 1:5], G=2))
 bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
-                       X.input = "data", tol = exp(-32), seed = 2021, 
-                       verbose = FALSE){
+                       X.input = "data", tol = exp(-32), seed = 2021){
+  # ## DEBUG
+  # X = bread$cata[1:8, , 1:5]
+  # G = 3
+  # M = NULL
+  # measure = "b"
+  # max.iter = 500
+  # runs = 1
+  # X.input = "data"
+  # tol = exp(-32)
+  # seed = 2021
   bcluster.call <- match.call()
   if(!is.null(M) & runs > 1){
     print("Cluster memberships in M will be the starting point for run 1.")
@@ -415,12 +485,10 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
       return(print("Cluster analysis stopped"))
     }
   } 
-  
   if(!(measure %in% c("b", "Q"))){
     return(print("Value for measure must be one of \"b\" or \"Q\"", 
                  quote = FALSE))
   }
-  
   ## Functions
   getQ <- function(X){
     if(length(dim(X))<3){
@@ -430,16 +498,26 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
     }
     return(out)
   }
-  
   # .getCurrent get sensory differentiation retained based on current clusters
-  .getCurrent <- function(M, X = NULL, G = length(unique(M)), 
-                          X.bc = NULL, measure = "b"){
+  .getCurrent <- function(M, X = NULL, 
+                          G = length(unique(M)), 
+                          X.bc = NULL, X.bc.dim = NULL, measure = "b"){
     current <- rep(NA, G)
-    if(measure == "b" && is.null(X.bc)) X.bc <- barray(X)
+    if(measure == "b" && is.null(X.bc)){
+      X.bc <- barray(X)
+      if(!is.null(X.bc.dim[1])){
+        if(!all.equal(dim(X.bc), X.bc.dim)){
+          X.bc <- array(X.bc, X.bc.dim)
+        }
+      }  
+    } 
     for(g in 1:G){
       g.mem <- which(M==g)
       if(measure == "b"){
-        current[g] <- getb(X.bc[g.mem,,1,], X.bc[g.mem,,2,])
+        current[g] <- 
+          getb(X.bc[g.mem,,1,], X.bc[g.mem,,2,],
+               oneI = ifelse(length(g.mem)==1, TRUE, FALSE),
+               oneM = ifelse(X.bc.dim[length(X.bc.dim)]==1, TRUE, FALSE))
       }
       if(measure == "Q"){
         current[g] <- getQ(X[g.mem,,])
@@ -447,7 +525,6 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
     }
     return(current)
   }
-  
   # .getGainMat calculates the update (gain) matrix U
   .getGainMat <- function(current, candidate, M, G=length(unique(M))){
     gainMat <- candidate * NA
@@ -461,11 +538,17 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
     }
     return(gainMat)
   }
-  
   # .initCandidate calculates the "calculated values matrix"
   .initCandidate <- function(M, X = NULL, G = length(unique(M)), 
-                             X.bc = NULL, measure = "b"){
-    if(is.null(X.bc)) X.bc <- barray(X)
+                             X.bc = NULL, X.bc.dim = NULL, measure = "b"){
+    if(measure == "b" && is.null(X.bc)){
+      X.bc <- barray(X)
+      if(!is.null(X.bc.dim[1])){
+        if(!all.equal(dim(X.bc), X.bc.dim)){
+          X.bc <- array(X.bc, X.bc.dim)
+        }
+      }  
+    } 
     out <- matrix(NA, nrow = length(M), ncol = G)
     for(i in seq_along(M)){
       this.M <- M
@@ -475,7 +558,9 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
         this.M[i] <- ifelse(g == curr.g, NA, g) 
         if(measure == "b"){ 
           out[i,g] <- getb(X.bc[which(this.M==g),,1,], 
-                           X.bc[which(this.M==g),,2,]) 
+                           X.bc[which(this.M==g),,2,], 
+                           oneI = ifelse(length(which(this.M==g))==1, TRUE, FALSE),
+                           oneM = ifelse(X.bc.dim[length(X.bc.dim)]==1, TRUE, FALSE))
         }
         if(measure == "Q"){ 
           out[i,g] <- getQ(X[which(this.M==g),,]) 
@@ -499,12 +584,18 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
     }
     return(list(i=swap.i, g=swap.g))
   }    
-  
   # .updateCandidate updates the "calculated values matrix" 
   .updateCandidate <- function(M, X, candidate, update.i, update.g, 
                                G=length(unique(M)), 
-                               X.bc = NULL, measure = "b"){
-    if(is.null(X.bc)) X.bc <- barray(X)
+                               X.bc = NULL, X.bc.dim = NULL, measure = "b"){
+    if(measure == "b" && is.null(X.bc)){
+      X.bc <- barray(X)
+      if(!is.null(X.bc.dim[1])){
+        if(!all.equal(dim(X.bc), X.bc.dim)){
+          X.bc <- array(X.bc, X.bc.dim)
+        }
+      }  
+    } 
     if(!all.equal(dim(candidate), c(length(M), G))) return(print("error"))
     out <- candidate
     for(i in seq_along(M)){
@@ -516,7 +607,9 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
           this.M[i] <- ifelse(g == curr.g, NA, g) 
           if(measure == "b"){ 
             out[i,g] <- getb(X.bc[which(this.M==g),,1,], 
-                             X.bc[which(this.M==g),,2,]) 
+                             X.bc[which(this.M==g),,2,], 
+                             oneI = ifelse(length(which(this.M==g))==1, TRUE, FALSE),
+                             oneM = ifelse(X.bc.dim[length(X.bc.dim)]==1, TRUE, FALSE)) 
           }
           if(measure == "Q"){ 
             out[i,g] <- getQ(X[which(this.M==g),,]) 
@@ -547,31 +640,51 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
   }
   ## End of functions
   
-  if(X.input == "data"){
+  if(measure %in% "b" && X.input == "data"){
+    if(length(dim(X)) == 2){
+      X <- array(X, c(dim(X)[1], dim(X)[2], 1), 
+                 dimnames = 
+                   list(dimnames(X)[[1]], dimnames(X)[[2]], "data"))
+    }
     nI <- dim(X)[1]
     nJ <- dim(X)[2]
     nM <- dim(X)[3]
     X.bc <- barray(X)
     nJJ <- dim(X.bc)[2]
-  } else if (X.input == "bc"){
-    if(measure == "Q"){
+  }
+  if (X.input %in% "bc"){
+    if(measure %in% "Q"){
       return(print("b-cluster analysis requires raw data for measure Q"))
     }
     X.bc <- X
+  }
+  msg <- NULL
+  if(length(dim(X.bc)) == 3){
+    msg <- "Cluster analysis will proceed assuming there is only 1 response variable"
+    if(!is.null(msg)) print(msg)
+    X.bc <- array(X.bc, c(dim(X.bc)[1], dim(X.bc)[2], dim(X.bc)[3], 1), 
+               dimnames = 
+                 list(dimnames(X.bc)[[1]], dimnames(X.bc)[[2]], 
+                      dimnames(X.bc)[[3]], "data"))
+  }
+  if (X.input %in% "bc"){
+    # X.bc <- X
     X <- NULL
     nI <- dim(X.bc)[1]
     nJJ <- dim(X.bc)[2]
-    nM <- dim(X.bc)[5]
+    nM <- dim(X.bc)[4] # [5]
     nJ <- findJ(dim(X.bc)[2])
   }
   if(is.null(dimnames(X.bc)[[1]])) dimnames(X.bc)[[1]] <- 1:nI
   if(is.null(dimnames(X.bc)[[2]])) dimnames(X.bc)[[2]] <- 1:nJJ
-  if(is.null(dimnames(X.bc)[[3]])) dimnames(X.bc)[[3]] <- 1:nM
+  if(is.null(dimnames(X.bc)[[3]])) dimnames(X.bc)[[3]] <- letters[2:3]
+  if(is.null(dimnames(X.bc)[[4]])) dimnames(X.bc)[[4]] <- 1:nM
+  X.bc.dim <- c(nI, nJJ, 2, nM)
   
-  if(measure == "b"){
+  if(measure %in% "b"){
     totalB <- sum(abs(X.bc[,,1,]-X.bc[,,2,]))
   }
-  if(measure == "Q"){
+  if(measure %in% "Q"){
     totalQ <- sum(apply(X, c(1,3), stats::sd) > 0) * (nJ-1)
   }
   
@@ -582,13 +695,14 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
   for(this.run in 1:runs){
     set.seed(seed + this.run)
     # use M provided only for run 1
-    if(is.null(M) || this.run > 1) M <- sample(G, nI, replace=TRUE)
+    if(is.null(M) || this.run > 1) M <- c(1:G, sample(G, nI-G, replace=TRUE))
     
     # Measure for groups
-    if(X.input == "data"){
+    if(measure %in% "Q" && X.input == "data"){
       current <- .getCurrent(M = M, X, measure=measure)
-    } else if (X.input == "bc"){
-      current <- .getCurrent(M = M, X.bc = X.bc, measure=measure)
+    } else { #if (X.input == "bc"){
+      current <- .getCurrent(M = M, X.bc = X.bc, X.bc.dim = X.bc.dim, 
+                             measure=measure)
     }
     
     # Enumerate impact of all (I*(G-1)) swaps
@@ -597,10 +711,11 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
     
     # Initialize candidate matrix (.initCandidate)
     # Later update candidate matrix (.updateCandidate)
-    if(X.input == "data"){
+    if(measure %in% "Q" && X.input == "data"){
       candidate <- .initCandidate(M, X, measure = measure)
-    } else if (X.input == "bc"){
-      candidate <- .initCandidate(M, X.bc = X.bc, measure = measure)
+    } else { #} if (X.input == "bc"){
+      candidate <- .initCandidate(M, X.bc = X.bc, X.bc.dim = X.bc.dim, 
+                                  measure = measure)
     }
     it <- 0
     continue <- TRUE
@@ -612,22 +727,25 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
         # Update group membership vector
         M[this.swap$i] <- this.swap$g
         # Update candidate matrix
-        if(X.input == "data"){
-          candidate <- .updateCandidate(M, X, candidate, 
-                                        update.i = this.swap$i, 
-                                        update.g = c(old.g, this.swap$g), 
-                                        G=G, X.bc = X.bc, measure = measure)
-        } else if (X.input == "bc"){
+        if(measure %in% "b" && X.input == "data"){
+          candidate <- .updateCandidate(M, X, candidate,
+                                        update.i = this.swap$i,
+                                        update.g = c(old.g, this.swap$g),
+                                        G=G, X.bc = X.bc, X.bc.dim = X.bc.dim, 
+                                        measure = measure)
+        } else {  #if (X.input == "bc"){
           candidate <- .updateCandidate(M, X = NULL, candidate, 
                                         update.i = this.swap$i, 
                                         update.g = c(old.g, this.swap$g), 
-                                        G=G, X.bc = X.bc, measure = measure)
+                                        G=G, X.bc = X.bc, X.bc.dim = X.bc.dim,
+                                        measure = measure)
         }
         # Recalculate current
-        if(X.input == "data"){
-          current <- .getCurrent(M = M, X, measure=measure)
-        } else if (X.input == "bc"){
-          current <- .getCurrent(M = M, X = NULL, X.bc = X.bc, measure=measure)
+        if(measure %in% "Q" && X.input == "data"){
+          current <- .getCurrent(M = M, X, X.bc.dim = X.bc.dim, measure=measure)
+        } else { #} if (X.input == "bc"){
+          current <- .getCurrent(M = M, X = NULL, X.bc = X.bc, 
+                                 X.bc.dim = X.bc.dim, measure=measure)
         }
         # Update quality measure
         Qual <- c(Qual, sum(current))
@@ -672,7 +790,7 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
 #' @aliases inspect
 #' @usage inspect(X, G = 2, bestB = NULL, bestM = NULL, inspect.plot = TRUE)
 #' @param X three-way array; the \code{I, J, M} array has \code{I}
-#' assessors, \code{J} products, code{M} attributes where CATA data have values 
+#' assessors, \code{J} products, \code{M} attributes where CATA data have values 
 #' \code{0} (not checked) and \code{1} (checked)
 #' @param G number of clusters (required for non-hierarchical algorithm)
 #' @param bestB  total sensory differentiation retained in the best solution. If
@@ -702,7 +820,7 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
 #' @examples
 #' data(bread)
 #' 
-#' res <- bcluster.n(bread$cata[1:10, , 1:8], G = 2, runs = 5)
+#' res <- bcluster.n(bread$cata[1:8, , 1:5], G = 2, runs = 3)
 #' inspect(res)
 inspect <- function(X, G = 2, bestB = NULL, bestM = NULL, inspect.plot = TRUE){
   # Functions
@@ -883,13 +1001,17 @@ inspect <- function(X, G = 2, bestB = NULL, bestM = NULL, inspect.plot = TRUE){
 #' differentiation retained. 
 #' @name getb
 #' @aliases getb
-#' @usage getb(X.b, X.c)
+#' @usage getb(X.b, X.c, oneI = FALSE, oneM = FALSE)
 #' @param X.b three-way (\code{I, J(J-1)/2, M}) array with 
 #' \code{I} assessors, \code{J(J-1)/2} product comparisons, \code{M} CATA 
 #' attributes, where values are counts of type \code{b} from the function 
 #' \code{\link[cata]{barray}})
 #' @param X.c array of same dimension as \code{X.b}, where values are counts of 
 #' type \code{b} from the function \code{\link[cata]{barray}})
+#' @param oneI indicates whether calculation is for one assessor (default: 
+#' \code{FALSE})
+#' @param oneM  indicates whether calculation is for one attribute (default: 
+#' \code{FALSE})
 #' @return b-measure
 #' @export
 #' @encoding UTF-8
@@ -900,14 +1022,37 @@ inspect <- function(X, G = 2, bestB = NULL, bestM = NULL, inspect.plot = TRUE){
 #' @examples
 #' data(bread)
 #' 
-#' bread.bc <- barray(bread$cata)
-#' getb(bread.bc[1:10,,1,], bread.bc[1:10,,2,])
-getb <- function(X.b, X.c){
-  if((length(dim(X.b))==2)) X.b <- array(X.b, c(1, dim(X.b)[1], dim(X.b)[2]))
-  if((length(dim(X.c))==2)) X.c <- array(X.c, c(1, dim(X.c)[1], dim(X.c)[2]))
-  this.numerator <-  apply(X.b - X.c, 2:3, sum)
-  this.denominator <- apply(X.b + X.c, 2:3, sum)
-  res <- sum((this.numerator^2)/this.denominator, na.rm=TRUE)
+#' bread.bc <- barray(bread$cata[1:8,,1:5])
+#' getb(bread.bc[,,1,], bread.bc[,,2,])
+getb <- function(X.b, X.c, oneI = FALSE, oneM = FALSE){
+  if(any(oneI, oneM)) {
+    if(all(oneI, oneM)){
+      dims <- c(1, length(X.b), 1)
+    } else {
+      dims <- dim(X.b) # 2D
+      if(oneI){
+        dims <- c(1, dims) # nI was 1
+      }
+      if(oneM){
+        dims <- c(dims, 1) # nM was 1
+      }
+    }
+    # make 3-way array
+    X.b <- array(X.b, dims)
+    X.c <- array(X.c, dims)
+  }
+  dims <- dim(X.b) # dimension is now nI x nJJ x nM
+  if(!all.equal(dims, dim(X.c))){
+    # dimension should also be nI x nJJ x nM
+    return("Cannot calculate b-measure for unequal sized arrays")
+  }
+  # keep 3-way array structure
+  r1 <-  array(X.b - X.c, dims)
+  r2 <-  array(X.b + X.c, dims)
+  # calculate and return b-measure
+  this.numerator <-  apply(r1, 2:3, sum)
+  this.denominator <- apply(r2, 2:3, sum)
+  res <- sum((this.numerator^2)/this.denominator, na.rm = TRUE)
   return(res)
 }
 
@@ -940,8 +1085,8 @@ getb <- function(X.b, X.c){
 #' @examples
 #' data(bread)
 #' 
-#' # Cochran's Q test on the first 40 consumers on the first attribute ("Fresh")
-#' cochranQ(bread$cata[1:40,,1])
+#' # Cochran's Q test on the first 25 consumers on the first attribute ("Fresh")
+#' cochranQ(bread$cata[1:25,,1])
 cochranQ <- function(X, na.rm = TRUE, quiet = FALSE, 
                      digits = getOption("digits")){
   if(is.vector(X)){
@@ -1016,8 +1161,8 @@ cochranQ <- function(X, na.rm = TRUE, quiet = FALSE,
 #' data(bread)
 #' 
 #' # McNemar's exact pairwise test for all product pairs
-#' # on the first 40 consumers and the first attribute ("Fresh")
-#' mcnemarQ(bread$cata[1:40,,1])
+#' # on the first 25 consumers and the first attribute ("Fresh")
+#' mcnemarQ(bread$cata[1:25,,1])
 mcnemarQ <- function(X, na.rm = TRUE, quiet = FALSE, 
                      digits = getOption("digits")){
   if(is.vector(X)){
@@ -1099,8 +1244,8 @@ mcnemarQ <- function(X, na.rm = TRUE, quiet = FALSE,
 #' @examples
 #' data(bread)
 #' 
-#' # Get the 4d array of CATA differences for the first 10 consumers
-#' b <- barray(bread$cata[1:10,,])
+#' # Get the 4d array of CATA differences for the first 8 consumers
+#' b <- barray(bread$cata[1:8,,])
 barray <- function(X, values = "bc", type.in = "binary", type.out = "binary"){
   abcd_1attribute <- function(X, type.in = "binary"){
     .abcd_1pair <- function(x, y, type.in = "binary"){
@@ -1181,9 +1326,9 @@ barray <- function(X, values = "bc", type.in = "binary", type.out = "binary"){
 #' @examples
 #' data(bread)
 #' 
-#' # convert CATA results from the first 10 consumers and the first 4 attributes
+#' # convert CATA results from the first 8 consumers and the first 4 attributes
 #' # to a wide matrix
-#' toWideMatrix(bread$cata[1:10,,1:4])
+#' toWideMatrix(bread$cata[1:8,,1:4])
 toWideMatrix <- function(X){
   out <- X[1,,]
   for(i in 2:dim(X)[[1L]]){
@@ -1215,9 +1360,9 @@ toWideMatrix <- function(X){
 #' @examples
 #' data(bread)
 #' 
-#' # convert CATA results from the first 10 consumers and the first 4 attributes
+#' # convert CATA results from the first 8 consumers and the first 4 attributes
 #' # to a tall matrix
-#' toMatrix(bread$cata[1:10,,1:4])
+#' toMatrix(bread$cata[1:8,,1:4])
 toMatrix <- function(X, header.rows = TRUE){
   if(length(dim(X)) != 3){
     return("Function is to convert an array to a matrix")
@@ -1327,7 +1472,7 @@ salton <- function(X, Y){
 #' @examples
 #' # Generate some data
 #' set.seed(123)
-#' X <- matrix(sample(1:9, 400, replace = TRUE), nrow = 5)
+#' X <- matrix(sample(1:9, 100, replace = TRUE), nrow = 5)
 #' 
 #' # apply top-2 box (T2B) coding
 #' code.topk(X, zero.below = 8, one.above = 7)
@@ -1368,7 +1513,7 @@ code.topk <- function(X, zero.below = 8, one.above = 7){
 #' @examples
 #' # Generate some data
 #' set.seed(123)
-#' X <- matrix(sample(1:9, 400, replace = TRUE), nrow = 5)
+#' X <- matrix(sample(1:9, 100, replace = TRUE), nrow = 5)
 #' 
 #' # apply top-2 choice (T2C) coding
 #' apply(X, 1, topc)

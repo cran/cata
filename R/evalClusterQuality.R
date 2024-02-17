@@ -6,7 +6,7 @@
 #' @aliases homogeneity
 #' @usage homogeneity(X)
 #' @param X three-way array; the \code{I, J, M} array has \code{I}
-#' assessors, \code{J} products, code{M} attributes where CATA data have values 
+#' assessors, \code{J} products, \code{M} attributes where CATA data have values 
 #' \code{0} (not checked) and \code{1} (checked)
 #' @return homogeneity index
 #' @export
@@ -57,7 +57,7 @@ homogeneity <- function(X){
 #' @usage evaluateClusterQuality(X, M, alpha = .05, M.order = NULL, 
 #' quiet = FALSE, digits = getOption("digits"), ...)
 #' @param X three-way array; the \code{I, J, M} array has \code{I}
-#' assessors, \code{J} products, code{M} attributes where CATA data have values 
+#' assessors, \code{J} products, \code{M} attributes where CATA data have values 
 #' \code{0} (not checked) and \code{1} (checked)
 #' @param M  cluster memberships
 #' @param alpha significance level to be used for two-tailed tests
@@ -106,7 +106,7 @@ homogeneity <- function(X){
 #' 
 #' @examples
 #' data(bread)
-#' evaluateClusterQuality(bread$cata[1:14,,1:6], M = rep(1:2, each = 7))
+#' evaluateClusterQuality(bread$cata[1:8,,1:5], M = rep(1:2, each = 4))
 evaluateClusterQuality <- function(X, M, alpha = .05, M.order = NULL, 
                        quiet = FALSE, digits = getOption("digits"), ...){
   # start of functions
@@ -301,8 +301,8 @@ evaluateClusterQuality <- function(X, M, alpha = .05, M.order = NULL,
 #' \doi{10.1016/j.foodqual.2013.05.005}.
 #' 
 #' @examples
-#' x <- sample(1:3, 30, replace = TRUE)
-#' y <- sample(1:3, 30, replace = TRUE)
+#' x <- sample(1:3, 20, replace = TRUE)
+#' y <- sample(1:3, 20, replace = TRUE)
 #' 
 #' ARI(x, y, signif = FALSE)
 ARI <- function(x, y, signif = FALSE, n = 1000){
@@ -396,15 +396,15 @@ ARI <- function(x, y, signif = FALSE, n = 1000){
 #'  
 #' @examples
 #' set.seed(123)
-#' G2 <- bcluster.n(bread$cata[1:12, , 1:8], G = 2, runs = 3)
-#' G3 <- bcluster.n(bread$cata[1:12, , 1:8], G = 3, runs = 3)
-#' G4 <- bcluster.n(bread$cata[1:12, , 1:8], G = 4, runs = 3)
+#' G2 <- bcluster.n(bread$cata[1:8, , 1:5], G = 2, runs = 3)
+#' G3 <- bcluster.n(bread$cata[1:8, , 1:5], G = 3, runs = 3)
+#' G4 <- bcluster.n(bread$cata[1:8, , 1:5], G = 4, runs = 3)
 #' 
 #' best.indx <- c(which.max(unlist(lapply(G2, function(x) x$retainedB))),
 #'                which.max(unlist(lapply(G3, function(x) x$retainedB))),
 #'                which.max(unlist(lapply(G4, function(x) x$retainedB))))
 #'                
-#' G1.bc <- barray(bread$cata[1:12, , 1:8])
+#' G1.bc <- barray(bread$cata[1:8, , 1:5])
 #' G1.B <- getb(G1.bc[,,1,], G1.bc[,,2,])
 #' BpctB <- data.frame(retainedB = c(G1.B, 
 #'                                   G2[[best.indx[1]]]$retainedB, 
