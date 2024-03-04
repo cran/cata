@@ -5,12 +5,18 @@
 \alias{homogeneity}
 \title{Calculate within-cluster homogeneity}
 \usage{
-homogeneity(X)
+homogeneity(X, oneI = FALSE, oneM = FALSE)
 }
 \arguments{
 \item{X}{three-way array; the \code{I, J, M} array has \code{I}
 assessors, \code{J} products, \code{M} attributes where CATA data have values 
 \code{0} (not checked) and \code{1} (checked)}
+
+\item{oneI}{indicates whether calculation is for one assessor (default: 
+\code{FALSE})}
+
+\item{oneM}{indicates whether calculation is for one attribute (default: 
+\code{FALSE})}
 }
 \value{
 homogeneity index

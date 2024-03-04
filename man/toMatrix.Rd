@@ -5,7 +5,7 @@
 \alias{toMatrix}
 \title{Converts 3d array of CATA data to a tall 2d matrix format}
 \usage{
-toMatrix(X, header.rows = TRUE)
+toMatrix(X, header.rows = TRUE, oneI = FALSE, oneM = FALSE)
 }
 \arguments{
 \item{X}{three-dimensional array (\code{I} assessors, \code{J}
@@ -14,6 +14,12 @@ or \code{1} (checked)}
 
 \item{header.rows}{\code{TRUE} (default) includes row headers; set to
 \code{FALSE} to exclude these headers}
+
+\item{oneI}{indicates whether calculation is for one assessor (default: 
+\code{FALSE})}
+
+\item{oneM}{indicates whether calculation is for one attribute (default: 
+\code{FALSE})}
 }
 \value{
 A matrix with \code{I} assessors * \code{J} products in rows

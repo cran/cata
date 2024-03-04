@@ -4,10 +4,14 @@
 #' \code{1/N} (no homogeneity) to \code{1} (perfect homogeneity). 
 #' @name homogeneity
 #' @aliases homogeneity
-#' @usage homogeneity(X)
+#' @usage homogeneity(X, oneI = FALSE, oneM = FALSE)
 #' @param X three-way array; the \code{I, J, M} array has \code{I}
 #' assessors, \code{J} products, \code{M} attributes where CATA data have values 
 #' \code{0} (not checked) and \code{1} (checked)
+#' @param oneI indicates whether calculation is for one assessor (default: 
+#' \code{FALSE})
+#' @param oneM  indicates whether calculation is for one attribute (default: 
+#' \code{FALSE})
 #' @return homogeneity index
 #' @export
 #' @encoding UTF-8
@@ -21,15 +25,38 @@
 #' 
 #' # homogeneity index for the first 7 consumers on the first 6 attributes
 #' homogeneity(bread$cata[1:7,,1:6])
-homogeneity <- function(X){
-  nI <- dim(X)[1]
-  nJ <- dim(X)[2]
-  nM <- dim(X)[3]
+homogeneity <- function(X, oneI = FALSE, oneM = FALSE){
+  if(any(oneI, oneM)) {
+    if(all(oneI, oneM)){
+      dims <- c(1, length(X), 1)
+    } else {
+      dims <- dim(X) # 2D
+      if(oneI){
+        dims <- c(1, dims) # nI was 1
+      }
+      if(oneM){
+        dims <- c(dims, 1) # nM was 1
+      }
+    }
+    X <- array(X, c(dims[1], dims[2], dims[3]))
+  }
+  if(length(dim(X)) == 2){
+    X <- array(X, c(dim(X)[1], dim(X)[2], 1), 
+               dimnames = list(dimnames(X)[[1]], dimnames(X)[[2]], "response"))
+  }
+  dims <- dim(X)
+  nI <- dims[1]
+  nJ <- dims[2]
+  nM <- dims[3]
   i.norm <- array(0, dim = c(nJ, nM, nI))
-  if(any(apply(X, 1, sum)==0)) return("Some assessors give no responses.")
+  #if(any(apply(X, 1, sum)==0)) return("Some assessors give no responses.")
   for (i in 1:nI) {
     i.cata <- as.matrix(X[i,,])
-    i.norm[, , i] <- i.cata/sqrt(sum(i.cata == 1))
+    if(sum(i.cata) > 0){
+      i.norm[, , i] <- i.cata / sqrt(sum(i.cata == 1))
+    } else {
+      i.norm[, , i] <- 0
+    }
   }
   S <- matrix(0, nI, nI)
   diag(S) <- rep(1, nI)
@@ -109,6 +136,11 @@ homogeneity <- function(X){
 #' evaluateClusterQuality(bread$cata[1:8,,1:5], M = rep(1:2, each = 4))
 evaluateClusterQuality <- function(X, M, alpha = .05, M.order = NULL, 
                        quiet = FALSE, digits = getOption("digits"), ...){
+  if(length(dim(X))==2){
+    X <- array(X, c(dim(X)[1], dim(X)[2], 1), 
+               dimnames = list(dimnames(X)[[1]], dimnames(X)[[2]], "response"))
+  }
+  dimX <- dim(X)
   # start of functions
   # calculate Within-cluster product discrimination (D_{g})
   .withinGroupDiscrim.signif <- function(b, c, 
@@ -123,6 +155,16 @@ evaluateClusterQuality <- function(X, M, alpha = .05, M.order = NULL,
   # end of functions
   
   X.bc <- barray(X)
+  if(dimX[3]==1){
+    X.bc <- array(X.bc, c(dim(X.bc)[1], dim(X.bc)[2], 2, 1),
+                  dimnames = list(dimnames(X.bc)[[1]], dimnames(X.bc)[[2]],
+                                  letters[2:3], dimnames(X)[[3]]))
+  } 
+  nI <- dimX[1]
+  nJ <- dimX[2]
+  nJJ <- dim(X.bc)[2]
+  nM <- dimX[3]
+  
   gID <- sort(unique(M))
   if(!is.null(M.order) & length(M.order)==length(gID)) gID <- gID[M.order]
   G <- length(gID)
@@ -138,24 +180,32 @@ evaluateClusterQuality <- function(X, M, alpha = .05, M.order = NULL,
                                            dimnames(X.bc)[[4]],
                                            c("lower.tail", "upper.tail")))
   for(g in 1:G){
-    Mg <- which(M == gID[g])
-    g.pp.M.two1tail[g,,,1] <- mapply(.withinGroupDiscrim.signif,
-                                     b = c(apply(X.bc[Mg, , 1, ], 2:3, sum)), 
-                                     c = c(apply(X.bc[Mg, , 2, ], 2:3, sum)),
-                                     MoreArgs = list(alternative = "l", 
-                                                     alpha = alpha/2))
-    g.pp.M.two1tail[g,,,2] <- mapply(.withinGroupDiscrim.signif,
-                                     b = c(apply(X.bc[Mg, , 1, ], 2:3, sum)), 
-                                     c = c(apply(X.bc[Mg, , 2, ], 2:3, sum)),
-                                     MoreArgs = list(alternative = "g", 
-                                                     alpha = alpha/2))
+      Mg <- which(M == gID[g])
+      g.pp.M.two1tail[g,,,1] <- 
+        mapply(.withinGroupDiscrim.signif,
+               b = c(apply(array(X.bc[Mg, , 1, ], c(length(Mg), nJJ, nM)), 
+                           2:3, sum)), 
+               c = c(apply(array(X.bc[Mg, , 2, ], c(length(Mg), nJJ, nM)), 
+                                 2:3, sum)),
+               MoreArgs = list(alternative = "l", alpha = alpha/2))
+    g.pp.M.two1tail[g,,,2] <- 
+      mapply(.withinGroupDiscrim.signif,
+             b = c(apply(array(X.bc[Mg, , 1, ], c(length(Mg), nJJ, nM)), 
+                               2:3, sum)), 
+                   c = c(apply(array(X.bc[Mg, , 2, ], c(length(Mg), nJJ, nM)), 
+                                     2:3, sum)),
+                         MoreArgs = list(alternative = "g", alpha = alpha/2))
     gMat[g,1] <- length(Mg)
-    gMat[g,2] <- getb(X.bc[Mg,,1,], X.bc[Mg,,2,])
+    gMat[g,2] <- getb(X.bc[Mg,,1,], X.bc[Mg,,2,], 
+                      oneI = ifelse(length(Mg)==1, TRUE, FALSE), 
+                      oneM = ifelse(nM==1, TRUE, FALSE))
     gMat[g,3] <- mean(X[Mg,,])
     # get homogeneity
-    gMat[g,4] <- homogeneity(X[Mg,,])
+    gMat[g,4] <- homogeneity(X[Mg,,], 
+                             oneI = ifelse(length(Mg)==1, TRUE, FALSE), 
+                             oneM = ifelse(nM==1, TRUE, FALSE))
     gMat[g,5] <- sum(g.pp.M.two1tail[g,,,], na.rm=TRUE)/
-      prod(dim(g.pp.M.two1tail[1,,,1]))
+      prod(nJJ, nM) # prod(dim(g.pp.M.two1tail[1,,,1]))
   }
   
   # *** Non-redundancy results per pair of clusters *** 
@@ -166,7 +216,9 @@ evaluateClusterQuality <- function(X, M, alpha = .05, M.order = NULL,
   #ggSaltonMat <- matrix(NA, nrow=G, ncol=G)
   if(G>1){
     for(gg1 in 2:nrow(ggMat)){
-      g1.data <- toMatrix(X[which(M==gID[gg1]),,])
+      g1.data <- toMatrix(array(X[which(M==gID[gg1]),,], c(length(which(M==gID[gg1])), nJ, nM)), 
+                          oneI = ifelse(length(which(M==gID[gg1]))==1, TRUE, FALSE), 
+                          oneM = ifelse(nM==1, TRUE, FALSE))
       g1.aggr <- stats::aggregate(g1.data[,-c(1,2)], 
                            list(g1.data[,2]), sum)[,-1]
       g1.prop <- as.matrix(g1.aggr / length(which(M==gID[gg1])))
@@ -184,7 +236,9 @@ evaluateClusterQuality <- function(X, M, alpha = .05, M.order = NULL,
         this.denom <- prod(dim(g.pp.M.two1tail)[-1])
         ggMat[gg1, gg2] <- 100*this.num/this.denom
         # RV
-        g2.data <- toMatrix(X[which(M==gID[gg2]),,])
+        g2.data <- toMatrix(array(X[which(M==gID[gg2]),,], c(length(which(M==gID[gg2])), nJ, nM)), 
+                            oneI = ifelse(length(which(M==gID[gg2]))==1, TRUE, FALSE), 
+                            oneM = ifelse(nM==1, TRUE, FALSE))
         g2.aggr <- stats::aggregate(g2.data[,-c(1,2)], 
                              list(g2.data[,2]), sum)[,-1]
         g2.prop <- as.matrix(g2.aggr / length(which(M==gID[gg2])))
@@ -197,7 +251,7 @@ evaluateClusterQuality <- function(X, M, alpha = .05, M.order = NULL,
   # *** Solution results *** 
   Mat <- matrix(NA, nrow=1, ncol=5, dimnames = list(
     "Solution", c("Pct.b", "min(NR)", "Div_G", "H_G", "avRV")))
-  Mat[1,1] <- 100*sum(gMat[,2])/sum(X.bc)
+  Mat[1,1] <- 100*sum(gMat[, 2])/sum(X.bc)
   Mat[1,2] <- ifelse(G>1, min(ggMat, na.rm=TRUE), NA)
   Mat[1,3] <- 100*sum(apply(g.pp.M.two1tail, c(2,3,4), 
                             function(x) (sum(x, na.rm = TRUE)>0)*1))/
@@ -249,27 +303,27 @@ evaluateClusterQuality <- function(X, M, alpha = .05, M.order = NULL,
                 "Results", 
                 "-------", ""), 
               collapse = '\n'))
-    print(as.data.frame(o$solution, row.names = ""), ...)
+    .unquote(as.data.frame(o$solution, row.names = ""))
     cat(paste(c("",
                 "Results per cluster", 
                 "-------------------", ""), 
               collapse = '\n'))
-    print(as.data.frame(o$cluster, row.names = ""), ...)
+    .unquote(as.data.frame(o$cluster, row.names = ""))
     cat(paste(c("",
                 "Non-redundancy per pair of clusters",
                 "-----------------------------------", ""), 
               collapse = '\n'))
-    .unquote(o$nonredundancy.clusterpairs, ...)
+    .unquote(o$nonredundancy.clusterpairs)
     cat(paste(c("",
                 "RV per pair of clusters",
                 "-----------------------", ""), 
               collapse = '\n'))
-    .unquote(o$rv.clusterpairs, ...)
+    .unquote(o$rv.clusterpairs)
     # cat(paste(c("",
     #             "Salton's cosine per pair of clusters",
     #             "------------------------------------", ""), 
     #           collapse = '\n'))
-    # .unquote(o$salton.clusterpairs, ...)
+    # .unquote(o$salton.clusterpairs)
     o <- NULL
   }
   invisible(res)
@@ -365,9 +419,6 @@ ARI <- function(x, y, signif = FALSE, n = 1000){
     return(list(ari = ari))
   }
 }
-
-
-
 
 #' Plot variation in retained sensory differentiation
 #'

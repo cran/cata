@@ -12,7 +12,8 @@
 #' @param Y  matrix of hedonic data with \code{I} consumers (rows)
 #' and \code{J} products (columns)
 #' @return Penalty lift for the attribute if \code{X} is a matrix; otherwise,
-#' penalty-lift for each attribute if \code{X} is a 3d array.
+#' penalty-lift for each attribute if \code{X} is a 3d array. If an attributes 
+#' is only checked or not check then \code{NA} is returned.
 #' @export
 #' @encoding UTF-8
 #' @references 
@@ -31,7 +32,11 @@
 #' pLift(bread$cata[1:12,,1:3], bread$liking[1:12, ]) 
 pLift <- function(X, Y){
   .pLiftAtt <- function(x, y){
-    return(mean(c(y)[c(x)==1]) - mean(c(y)[c(x)==0]))
+    if(any(length(x), length(y))==0){
+      return(NA) # otherwise it would return NaN
+    } else {
+      return(mean(c(y)[c(x)==1]) - mean(c(y)[c(x)==0]))
+    }
   }
   if(!all(unique(c(X)) %in% 0:1)){
     "X must be CATA data (coded 0/1)"

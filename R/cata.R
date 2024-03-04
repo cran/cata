@@ -789,9 +789,8 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
 #' @name inspect
 #' @aliases inspect
 #' @usage inspect(X, G = 2, bestB = NULL, bestM = NULL, inspect.plot = TRUE)
-#' @param X three-way array; the \code{I, J, M} array has \code{I}
-#' assessors, \code{J} products, \code{M} attributes where CATA data have values 
-#' \code{0} (not checked) and \code{1} (checked)
+#' @param X list of multiple runs of b-cluster analysis results from 
+#' \code{\link[cata]{bcluster.n}} or \code{\link[cata]{bcluster.h}} 
 #' @param G number of clusters (required for non-hierarchical algorithm)
 #' @param bestB  total sensory differentiation retained in the best solution. If
 #' not provided, then \code{bestB} is determined from best solution in the runs
@@ -804,11 +803,13 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
 #' columns:
 #' \itemize{
 #' \item{\code{B} : Sensory differentiation retained}
-#' \item{\code{pctB} : Percentage of the total sensory differentiation retained}
+#' \item{\code{PctB} : Percentage of the total sensory differentiation retained}
 #' \item{\code{B.prop} : Proportion of sensory differentiation retained compared
 #' to best solution}
-#' \item{\code{raw.agree} : raw agreement with best solution}
-#' \item{\code{count} : number of runs for which this solution was observed} 
+#' \item{\code{Raw.agree} : raw agreement with best solution}
+#' \item{\code{Count} : number of runs for which this solution was observed} 
+#' \item{\code{Index}} : list index (i.e., run number) of first solution  
+#' solution in \code{X} corresponding to this row
 #' \item{\code{c.1, c.2, ...} : remaining columns gives index of the cluster 
 #' to which the consumers (columns) are allocated}}
 #' @export
@@ -845,69 +846,16 @@ inspect <- function(X, G = 2, bestB = NULL, bestM = NULL, inspect.plot = TRUE){
                    memberships in bestM"))
     }
   }
+  continue <- inspection.complete <- FALSE
   if(class(X[[1]]) %in% "hclust"){
-    nI <- nrow(X[[1]]$merge)+1
+    nI <- nrow(X[[1]]$merge) + 1
     # Mmat   :  membership matrix: rows=assessors, columns=runs
     Mmat <- matrix(unlist(lapply(X, stats::cutree, k=G)), nrow = nI, byrow = FALSE)
     # bb     :  sensory differentiation retained
     bb <- matrix(unlist(lapply(X, get.retainedB, G)), nrow = 2, byrow = FALSE)
-    maxB <- max(bb)
-    if(is.null(bestB)) bestB <- max(bb[1,])
-    # bbMmat :  both, rows=runs, columns=assessors
-    bbMmat <- cbind(rep(1, n.sol), bb[1,], t(Mmat))
-    # best.sol.indx :  row index of bbMmat having the best solution
-    best.sol.indx <- which(bbMmat[,2] == max(bbMmat[,2]))
-    # all.sol :  unique solutions
-    all.sol <- stats::aggregate(bbMmat[,1] ~ ., data = bbMmat, sum)[, -1]
-    # all.sol :  order from best to worst
-    all.sol <- all.sol[order(all.sol[,1], decreasing = TRUE), ]
-    # best.sol:  cluster memerships of best solution
-    best.sol <- unlist(all.sol[1,-c(1,2,ncol(all.sol))])
-    if(is.null(bestM)) bestM <- best.sol
-    # raw.a:  raw agreement between the best solution and every other solution
-    raw.a <- apply(as.matrix(all.sol[,-c(1,2,ncol(all.sol))]), 1,
-                   function(x, ref=bestM){
-                     tblx <- table(x)
-                     tblr <- table(ref)
-                     tblxr <- table(x,ref)
-                     return(1 + (sum(tblxr^2) -
-                                   sum(tblx^2)/2 -
-                                   sum(tblr^2)/2) /
-                              choose(length(x), 2)) } )
-    all.solutions <-
-      cbind(all.sol[,1], 
-            100*(round(all.sol[,1]/maxB, 4)),
-            all.sol[,1]/bestB, 
-            round(raw.a,4), all.sol[,ncol(all.sol)], 
-            as.matrix(all.sol[,-c(1,ncol(all.sol))]))
-    colnames(all.solutions)[1:5] <- c("B", "pctB", "B.prop", "raw.agree", "count")
-    colnames(all.solutions)[-c(1:5)] <- paste0("c.", 1:nI)
-    # all.solutions <-
-    #   cbind(all.sol[,1:2], all.sol[,1]/ifelse(is.na(maxB), max(bb)[1], maxB), 
-    #         round(raw.a,4), all.sol[,ncol(all.sol)], 
-    #         as.matrix(all.sol[,-c(1,2,ncol(all.sol))]))
-    # colnames(all.solutions)[1:4] <- c("B", "B.prop", "raw.agree", "count")
-    # colnames(all.solutions)[-c(1:4)] <- dimnames(X)[[1]]
-    # plot of
-    #   x=proportion of runs vs.
-    #   y=sensory differentiation retained
-    #   ...points as text indicating % raw agreement with best solution
-    if(inspect.plot){
-      curr.par <- graphics::par(no.readonly = TRUE) # current parameters
-      on.exit(graphics::par(curr.par)) # return to current parameters on exit
-      graphics::par(mar=c(7, 4, 4, 2) + 0.1)
-      plot(c(1,0), range(all.sol[,2]), type="n", xlim = c(1,0),
-           main = paste0("Strawberry cluster analysis (G=", G, ") from ",
-                         n.sol, " runs"),
-           ylab = "Sensory Differentiation Retained (B)",
-           xlab = "Proportion of runs with this B or higher",
-           sub = paste0("(Text = % agreement with best solution)"))
-      graphics::text(x = cumsum(all.sol[,ncol(all.sol)]) /
-                       sum(all.sol[,ncol(all.sol)]),
-                     y = all.sol[,2],
-                     labels = as.character(round(raw.a,2)*100), srt=45)
-    }
-  } else if (class(X[[1]]) %in% "bclust.n"){
+    continue <- TRUE
+  }
+  if (class(X[[1]]) %in% "bclust.n"){
     nI <- length(X[[1]]$cluster)
     # Mmat   :  membership matrix: rows=assessors, columns=runs
     Mmat <- matrix(unlist(lapply(X, function(x){
@@ -915,6 +863,9 @@ inspect <- function(X, G = 2, bestB = NULL, bestM = NULL, inspect.plot = TRUE){
     # bb     :  sensory differentiation retained
     bb <- matrix(unlist(lapply(X, function(x){ return(c(x$retainedB,
                                                         x$totalB))})), nrow = 2)
+    continue <- TRUE
+  }
+  if(continue){
     if(is.null(bestB)) bestB <- max(bb[1,])
     maxB <- max(bb)
     # bbMmat :  both, rows=runs, columns=assessors
@@ -927,18 +878,24 @@ inspect <- function(X, G = 2, bestB = NULL, bestM = NULL, inspect.plot = TRUE){
     all.sol <- all.sol[order(all.sol[,1], decreasing = TRUE), ]
     all.sol.save <- all.sol
     # if B is identical in two or more rows, merge if they agree perfectly
-    if(nrow(all.sol)>1){
+    if(nrow(all.sol) > 1){
       for(rr in nrow(all.sol):2){
-        if(all.sol[rr,1] == all.sol[rr-1,1]){
-          #print(paste("rr-1 is the same as rr =", rr))
-          # identical B so check if agreement is perfect
-          if(get.raw.agreement(
-            unlist(all.sol[rr, -c(1,ncol(all.sol))]),
-            unlist(all.sol[rr-1, -c(1,ncol(all.sol))])==1)){
-            #print(paste("raw agreement for rr-1 and rr =", rr))
-            all.sol[rr-1, ncol(all.sol)] <- 
-              all.sol[rr-1, ncol(all.sol)] + all.sol[rr, ncol(all.sol)]
-            all.sol[rr, ncol(all.sol)] <- 0
+        # compare with all rows above with equal B (not just row above)
+        rr2.indx <- which(all.sol[1:(rr-1),1] == all.sol[rr,1])
+        if(length(rr2.indx)>0){
+          for(rr2 in rr2.indx){
+            if(isTRUE(all.equal(all.sol[rr,1], all.sol[rr2,1]))){
+              #print(paste("rr-1 is the same as rr =", rr))
+              # identical B so check if agreement is perfect
+              if(isTRUE(all.equal(get.raw.agreement(
+                unlist(all.sol[rr, -c(1,ncol(all.sol))]),
+                unlist(all.sol[rr2, -c(1,ncol(all.sol))])), 1))){
+                #print(paste("raw agreement for rr-1 and rr =", rr))
+                all.sol[rr2, ncol(all.sol)] <- 
+                  all.sol[rr2, ncol(all.sol)] + all.sol[rr, ncol(all.sol)]
+                all.sol[rr, ncol(all.sol)] <- 0
+              }
+            }
           }
         }
       }
@@ -947,6 +904,9 @@ inspect <- function(X, G = 2, bestB = NULL, bestM = NULL, inspect.plot = TRUE){
         all.sol <- all.sol[-which(all.sol[, ncol(all.sol)] == 0), ]
       }
     }
+    # order by B, then by count
+    all.sol <- all.sol[order(all.sol[,1], 
+                             all.sol[, ncol(all.sol)], decreasing = TRUE),]
     # best.sol:  cluster memberships of best solution
     best.sol <- unlist(all.sol[1,-c(1,ncol(all.sol))])
     # this step can be improved later
@@ -960,20 +920,17 @@ inspect <- function(X, G = 2, bestB = NULL, bestM = NULL, inspect.plot = TRUE){
                                    sum(tblx^2)/2 -
                                    sum(tblr^2)/2) /
                               choose(length(x), 2)) } )
-    # all.solutions <-
-    #   cbind(all.sol[,1], all.sol[,1]/ifelse(is.na(maxB), max(bb)[1], maxB), 
-    #         round(raw.a,4), all.sol[,ncol(all.sol)], 
-    #         as.matrix(all.sol[,-c(1,ncol(all.sol))]))
-    # colnames(all.solutions)[1:4] <- c("B", "B.prop", "raw.agree", "count")
-    # colnames(all.solutions)[-c(1:4)] <- paste0("c.", 1:nI)
     all.solutions <-
       cbind(all.sol[,1], 
             100*(round(all.sol[,1]/max(bb)[1], 4)),
             all.sol[,1]/bestB, 
             round(raw.a,4), all.sol[,ncol(all.sol)], 
+            as.numeric(rownames(all.sol)),
             as.matrix(all.sol[,-c(1,ncol(all.sol))]))
-    colnames(all.solutions)[1:5] <- c("B", "pctB", "B.prop", "raw.agree", "count")
-    colnames(all.solutions)[-c(1:5)] <- paste0("c.", 1:nI)
+    colnames(all.solutions)[1:6] <- c("B", "PctB", "B.prop", "Raw.agree", 
+                                      "Count", "Index")
+    colnames(all.solutions)[-c(1:6)] <- paste0("c.", 1:nI)
+    rownames(all.solutions) <- NULL
     if(inspect.plot){
       curr.par <- graphics::par(no.readonly = TRUE) # current parameters
       on.exit(graphics::par(curr.par)) # return to current parameters on exit
@@ -983,17 +940,25 @@ inspect <- function(X, G = 2, bestB = NULL, bestM = NULL, inspect.plot = TRUE){
                          n.sol, " runs"),
            ylab = "Sensory Differentiation Retained (B)",
            xlab = "Proportion of runs with this B or higher",
-           sub = paste0("Text = % agreement with best solution"))
+           sub = paste0("Labels indicate % agreement with best solution"))
       graphics::text(x = cumsum(all.sol[,ncol(all.sol)]) /
                        sum(all.sol[,ncol(all.sol)]),
                      y = all.sol[,1]/bestB,
                      labels = as.character(round(raw.a,2)*100), srt=45)
     }
-  } else {
-    return("Input must be a list of b-cluster analysis results (many runs)")
+    inspection.complete <- TRUE
   }
-  return(all.solutions)
-}
+  if(!inspection.complete){
+    return("Input must be a list of b-cluster analysis results (many runs)")
+  } else {
+    num.best <- length(all.solutions[,1] == all.solutions[1,1])
+    if(num.best > 1){
+      cat("Multiple (", num.best, ") best solutions. Table compares ",
+                     "solutiohs against row 1.", "\n", sep = "")
+    }
+    return(all.solutions)
+  }
+} 
 
 #' Calculate the b-measure
 #'
@@ -1346,12 +1311,16 @@ toWideMatrix <- function(X){
 #'  
 #' @name toMatrix
 #' @aliases toMatrix
-#' @usage toMatrix(X, header.rows = TRUE)
+#' @usage toMatrix(X, header.rows = TRUE, oneI = FALSE, oneM = FALSE)
 #' @param X three-dimensional array (\code{I} assessors, \code{J}
 #' products, \code{M} attributes) where values are \code{0} (not checked) 
 #' or \code{1} (checked)
 #' @param header.rows \code{TRUE} (default) includes row headers; set to
 #' \code{FALSE} to exclude these headers
+#' @param oneI indicates whether calculation is for one assessor (default: 
+#' \code{FALSE})
+#' @param oneM  indicates whether calculation is for one attribute (default: 
+#' \code{FALSE})
 #' @return A matrix with \code{I} assessors * \code{J} products in rows
 #' and \code{M} attributes in columns (preceded by 2 columns)
 #' of headers if \code{header.rows = TRUE}
@@ -1363,13 +1332,36 @@ toWideMatrix <- function(X){
 #' # convert CATA results from the first 8 consumers and the first 4 attributes
 #' # to a tall matrix
 #' toMatrix(bread$cata[1:8,,1:4])
-toMatrix <- function(X, header.rows = TRUE){
-  if(length(dim(X)) != 3){
+toMatrix <- function(X, header.rows = TRUE, oneI = FALSE, oneM = FALSE){
+  if(any(oneI, oneM)) {
+    if(all(oneI, oneM)){
+      dims <- c(1, length(X), 1)
+    } else {
+      dims <- dim(X) # 2D
+      if(oneI){
+        dims <- c(1, dims) # nI was 1
+      }
+      if(oneM){
+        dims <- c(dims, 1) # nM was 1
+      }
+    }
+    X <- array(X, c(dims[1], dims[2], dims[3]))
+  }
+  if(length(dim(X)) == 2){
+    X <- array(X, c(dim(X)[1], dim(X)[2], 1), 
+               dimnames = list(dimnames(X)[[1]], dimnames(X)[[2]], "response"))
+  }
+  dims <- dim(X)
+  if(length(dims) != 3){
     return("Function is to convert an array to a matrix")
   } 
-  nI <- dim(X)[1]
-  nJ <- dim(X)[2]
-  nM <- dim(X)[3]
+  nI <- dims[1]
+  nJ <- dims[2]
+  nM <- dims[3]
+  if(is.null(dimnames(X)[[1]])[1]) dimnames(X)[[1]] <- 1:nI
+  if(is.null(dimnames(X)[[2]])[1]) dimnames(X)[[2]] <- 1:nJ
+  if(is.null(dimnames(X)[[3]])[1]) dimnames(X)[[3]] <- 1:nM
+  
   this.rownames <- paste0(rep(dimnames(X)[[1]], each = nJ), "_",
                           rep(dimnames(X)[[2]], times = nI))
   Xout <- matrix(NA, ncol = dim(X)[[3]], nrow = prod(dim(X)[-3]),

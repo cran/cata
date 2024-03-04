@@ -8,9 +8,8 @@
 inspect(X, G = 2, bestB = NULL, bestM = NULL, inspect.plot = TRUE)
 }
 \arguments{
-\item{X}{three-way array; the \code{I, J, M} array has \code{I}
-assessors, \code{J} products, \code{M} attributes where CATA data have values 
-\code{0} (not checked) and \code{1} (checked)}
+\item{X}{list of multiple runs of b-cluster analysis results from 
+\code{\link[cata]{bcluster.n}} or \code{\link[cata]{bcluster.h}}}
 
 \item{G}{number of clusters (required for non-hierarchical algorithm)}
 
@@ -29,11 +28,13 @@ A data frame with unique solutions in rows and the following
 columns:
 \itemize{
 \item{\code{B} : Sensory differentiation retained}
-\item{\code{pctB} : Percentage of the total sensory differentiation retained}
+\item{\code{PctB} : Percentage of the total sensory differentiation retained}
 \item{\code{B.prop} : Proportion of sensory differentiation retained compared
 to best solution}
-\item{\code{raw.agree} : raw agreement with best solution}
-\item{\code{count} : number of runs for which this solution was observed} 
+\item{\code{Raw.agree} : raw agreement with best solution}
+\item{\code{Count} : number of runs for which this solution was observed} 
+\item{\code{Index}} : list index (i.e., run number) of first solution  
+solution in \code{X} corresponding to this row
 \item{\code{c.1, c.2, ...} : remaining columns gives index of the cluster 
 to which the consumers (columns) are allocated}}
 }

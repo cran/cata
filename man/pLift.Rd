@@ -17,7 +17,8 @@ and \code{J} products (columns)}
 }
 \value{
 Penalty lift for the attribute if \code{X} is a matrix; otherwise,
-penalty-lift for each attribute if \code{X} is a 3d array.
+penalty-lift for each attribute if \code{X} is a 3d array. If an attributes 
+is only checked or not check then \code{NA} is returned.
 }
 \description{
 Penalty-Lift analysis for CATA variables, which is the difference between
