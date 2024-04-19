@@ -33,10 +33,8 @@ columns:
 to best solution}
 \item{\code{Raw.agree} : raw agreement with best solution}
 \item{\code{Count} : number of runs for which this solution was observed} 
-\item{\code{Index}} : list index (i.e., run number) of first solution  
-solution in \code{X} corresponding to this row
-\item{\code{c.1, c.2, ...} : remaining columns gives index of the cluster 
-to which the consumers (columns) are allocated}}
+\item{\code{Index} : list index (i.e., run number) of first solution  
+solution in \code{X} corresponding to this row}}
 }
 \description{
 Inspect many runs of b-cluster analysis. Calculate sensory differentiation 
@@ -45,8 +43,12 @@ retained and recurrence rate.
 \examples{
 data(bread)
 
-res <- bcluster.n(bread$cata[1:8, , 1:5], G = 2, runs = 3)
-inspect(res)
+res <- bcluster.n(bread$cata[1:8, , 1:5], G = 3, runs = 3)
+(ires <- inspect(res))
+# get index of solution retaining the most sensory differentiation (in these runs)
+indx <- ires$Index[1]
+# cluster memberships for solution of this solution
+res[[indx]]$cluster
 }
 \references{
 Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 

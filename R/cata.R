@@ -50,6 +50,7 @@
 #' (b1 <- bcluster(bread$cata[1:8,,1:5], G=2, seed = 123))
 #' # Since the seed is the same, the result will be identical to
 #' # (b2 <- bcluster.n(bread$cata[1:8,,1:5], G=2, seed = 123))
+#' b3 <- bcluster(bread$cata[1:8,,1:5], G=2, runs = 5, seed = 123)
 bcluster <- function(X, inspect = TRUE, inspect.plot = TRUE,
                      algorithm = "n", measure = "b",
                      G = NULL, M = NULL, max.iter = 500, X.input = "data", 
@@ -82,7 +83,7 @@ bcluster <- function(X, inspect = TRUE, inspect.plot = TRUE,
         G <- 2
       }
     }
-    out$inspect <- inspect(out$runs, G = G, inspect.plot = inspect.plot)
+    print(out$inspect <- inspect(out$runs, G = G, inspect.plot = inspect.plot))
   }
   invisible(out)
 }
@@ -808,10 +809,8 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
 #' to best solution}
 #' \item{\code{Raw.agree} : raw agreement with best solution}
 #' \item{\code{Count} : number of runs for which this solution was observed} 
-#' \item{\code{Index}} : list index (i.e., run number) of first solution  
-#' solution in \code{X} corresponding to this row
-#' \item{\code{c.1, c.2, ...} : remaining columns gives index of the cluster 
-#' to which the consumers (columns) are allocated}}
+#' \item{\code{Index} : list index (i.e., run number) of first solution  
+#' solution in \code{X} corresponding to this row}}
 #' @export
 #' @encoding UTF-8
 #' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
@@ -821,8 +820,12 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
 #' @examples
 #' data(bread)
 #' 
-#' res <- bcluster.n(bread$cata[1:8, , 1:5], G = 2, runs = 3)
-#' inspect(res)
+#' res <- bcluster.n(bread$cata[1:8, , 1:5], G = 3, runs = 3)
+#' (ires <- inspect(res))
+#' # get index of solution retaining the most sensory differentiation (in these runs)
+#' indx <- ires$Index[1]
+#' # cluster memberships for solution of this solution
+#' res[[indx]]$cluster
 inspect <- function(X, G = 2, bestB = NULL, bestM = NULL, inspect.plot = TRUE){
   # Functions
   get.retainedB <- function(y, k){
@@ -953,10 +956,13 @@ inspect <- function(X, G = 2, bestB = NULL, bestM = NULL, inspect.plot = TRUE){
   } else {
     num.best <- length(all.solutions[,1] == all.solutions[1,1])
     if(num.best > 1){
-      cat("Multiple (", num.best, ") best solutions. Table compares ",
-                     "solutiohs against row 1.", "\n", sep = "")
+      cat("The best solution from these ", n.sol, " runs (row 1) ",
+      "is compared with the solutions found in other runs.", 
+      "\n", sep = "")
     }
-    return(all.solutions)
+    all.solutions <- as.data.frame(all.solutions)
+    all.solutions[,6] <- as.integer(all.solutions[,6])
+    return(all.solutions[,1:6])
   }
 } 
 
@@ -1161,6 +1167,8 @@ mcnemarQ <- function(X, na.rm = TRUE, quiet = FALSE,
   res[,6] <- mapply(function(x, y){ 
     2*sum(stats::dbinom(0:min(x, sum(x,y)-x), size = sum(x,y), 
                         prob = .5))}, res[,3], res[,4])
+  res[,6] <- mapply(min, res[,6], 1)
+
   if(!quiet){
     cat(paste(c("",
                 "McNemar's pairwise test", 

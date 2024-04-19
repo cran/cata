@@ -64,6 +64,7 @@ data(bread)
 (b1 <- bcluster(bread$cata[1:8,,1:5], G=2, seed = 123))
 # Since the seed is the same, the result will be identical to
 # (b2 <- bcluster.n(bread$cata[1:8,,1:5], G=2, seed = 123))
+b3 <- bcluster(bread$cata[1:8,,1:5], G=2, runs = 5, seed = 123)
 }
 \references{
 Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
