@@ -122,8 +122,7 @@ bcluster <- function(X, inspect = TRUE, inspect.plot = TRUE,
 #' plot(as.dendrogram(b), 
 #'   main = "Hierarchical b-cluster analysis", 
 #'   sub = "8 bread consumers on 5 attributes")
-bcluster.h <- function(X, measure = "b", runs = 1, 
-                       seed = 2021){
+bcluster.h <- function(X, measure = "b", runs = 1, seed = 2021){
   ## DEBUG
   # X = bread$cata[1:14,,1]
   # measure = "b"
@@ -433,7 +432,8 @@ bcluster.h <- function(X, measure = "b", runs = 1,
 #' @param X CATA data organized in a three-way array (assessors, products, 
 #' attributes)
 #' @param G number of clusters (required for non-hierarchical algorithm)
-#' @param M initial cluster memberships
+#' @param M initial cluster memberships (default: \code{NULL}), but can be a vector
+#' (one run) or a matrix (consumers in rows; runs in columns)
 #' @param measure \code{b} (default) for the \code{b}-measure is implemented
 #' @param max.iter maximum number of iteration allowed (default \code{500})
 #' @param runs number of runs (defaults to \code{1})
@@ -467,17 +467,8 @@ bcluster.h <- function(X, measure = "b", runs = 1,
 #' (b <- bcluster.n(bread$cata[1:8, , 1:5], G=2))
 bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
                        X.input = "data", tol = exp(-32), seed = 2021){
-  # ## DEBUG
-  # X = bread$cata[1:8, , 1:5]
-  # G = 3
-  # M = NULL
-  # measure = "b"
-  # max.iter = 500
-  # runs = 1
-  # X.input = "data"
-  # tol = exp(-32)
-  # seed = 2021
   bcluster.call <- match.call()
+  
   if(!is.null(M) & runs > 1){
     print("Cluster memberships in M will be the starting point for run 1.")
     print("Subsequent runs will use random start.")
@@ -490,136 +481,222 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
     return(print("Value for measure must be one of \"b\" or \"Q\"", 
                  quote = FALSE))
   }
+  
   ## Functions
   getQ <- function(X){
     if(length(dim(X))<3){
-      out <- cochranQ(X, quiet = TRUE)
+      #out <- cochranQ(X, quiet = TRUE)
+      return(cochranQ(X, quiet = TRUE))
     } else {
-      out <- sum(apply(X, 3, cochranQ, quiet = TRUE), na.rm=TRUE)
+      #out <- sum(apply(X, 3, cochranQ, quiet = TRUE), na.rm=TRUE)
+      return(sum(apply(X, 3, cochranQ, quiet = TRUE), na.rm=TRUE))
     }
-    return(out)
+    #return(out)
   }
+  
   # .getCurrent get sensory differentiation retained based on current clusters
   .getCurrent <- function(M, X = NULL, 
                           G = length(unique(M)), 
                           X.bc = NULL, X.bc.dim = NULL, measure = "b"){
     current <- rep(NA, G)
-    if(measure == "b" && is.null(X.bc)){
-      X.bc <- barray(X)
-      if(!is.null(X.bc.dim[1])){
-        if(!all.equal(dim(X.bc), X.bc.dim)){
-          X.bc <- array(X.bc, X.bc.dim)
-        }
+    if(measure == "b"){
+      if(!all.equal(dim(X.bc), X.bc.dim)){
+        X.bc <- array(X.bc, X.bc.dim)
       }  
     } 
-    for(g in 1:G){
+    oneM <- (X.bc.dim[length(X.bc.dim)]==1)
+    b.bygroup <- function(g, M, oneM){
       g.mem <- which(M==g)
-      if(measure == "b"){
-        current[g] <- 
-          getb(X.bc[g.mem,,1,], X.bc[g.mem,,2,],
-               oneI = ifelse(length(g.mem)==1, TRUE, FALSE),
-               oneM = ifelse(X.bc.dim[length(X.bc.dim)]==1, TRUE, FALSE))
-      }
-      if(measure == "Q"){
+      return(getb(X.bc[g.mem,,1,], X.bc[g.mem,,2,],
+                  oneI = (length(g.mem)==1), oneM = oneM))
+    }
+    if(measure == "b"){
+      return(mapply(b.bygroup, 1:G, MoreArgs = list(M=M, oneM=oneM)))
+    }
+    if(measure == "Q"){
+      for(g in 1:G){
+        g.mem <- which(M==g)
         current[g] <- getQ(X[g.mem,,])
       }
-    }
-    return(current)
+    } 
   }
-  # .getGainMat calculates the update (gain) matrix U
-  .getGainMat <- function(current, candidate, M, G=length(unique(M))){
-    gainMat <- candidate * NA
-    for(i in 1:nrow(gainMat)){
-      for(g in 1:G){
-        if(M[i] != g){
-          gainMat[i, g] <- sum(candidate[i, c(g, M[i])]) - 
-            sum(current[c(g, M[i])])
-        } # otherwise the gain is NA
-      }
-    }
-    return(gainMat)
+  
+  # used in .initCandidate() to evaluate b-measure of cluster g where 'assessor'
+  # is either removed (new.g is NA) or added (to cluster number 'new.g')
+  .getCandidateMatrix <- function(g, new.g, assessor, M=M, X.bc=X.bc, X.bc.dim=X.bc.dim){
+    this.M <- M
+    this.M[assessor] <- new.g
+    g.mem <- which(this.M==g)
+    return(
+      getb(X.bc[g.mem,,1,],
+           X.bc[g.mem,,2,],
+           oneI = (length(g.mem)==1),
+           oneM = (X.bc.dim[length(X.bc.dim)]==1))
+    )
   }
+  
   # .initCandidate calculates the "calculated values matrix"
   .initCandidate <- function(M, X = NULL, G = length(unique(M)), 
                              X.bc = NULL, X.bc.dim = NULL, measure = "b"){
-    if(measure == "b" && is.null(X.bc)){
-      X.bc <- barray(X)
-      if(!is.null(X.bc.dim[1])){
-        if(!all.equal(dim(X.bc), X.bc.dim)){
-          X.bc <- array(X.bc, X.bc.dim)
-        }
-      }  
-    } 
-    out <- matrix(NA, nrow = length(M), ncol = G)
-    for(i in seq_along(M)){
-      this.M <- M
-      curr.g <- M[i]
-      for(g in 1:G){
-        # drop i from g if in the group, add i to g if not in the group
-        this.M[i] <- ifelse(g == curr.g, NA, g) 
-        if(measure == "b"){ 
-          out[i,g] <- getb(X.bc[which(this.M==g),,1,], 
-                           X.bc[which(this.M==g),,2,], 
-                           oneI = ifelse(length(which(this.M==g))==1, TRUE, FALSE),
-                           oneM = ifelse(X.bc.dim[length(X.bc.dim)]==1, TRUE, FALSE))
-        }
-        if(measure == "Q"){ 
-          out[i,g] <- getQ(X[which(this.M==g),,]) 
+    if(measure %in% "b"){
+      # columns: current group, potential group, change in b
+      indxGrid <- cbind(curr.g = rep(M, times = G), # 1 
+                        change.curr.g = rep(1:G, each = length(M)), # 2
+                        new.g = rep(1:G, each = length(M)), # 3
+                        assessor = 1:length(M), # 4
+                        b = NA) # 5
+      # dont' need to calculate if the group doesn't change
+      indxGrid[which(indxGrid[,1]==indxGrid[,2]), 3] <- NA
+        return(
+          matrix(mapply(.getCandidateMatrix, 
+                        g=indxGrid[,2], 
+                        new.g=indxGrid[,3],
+                        assessor=indxGrid[,4],
+                        MoreArgs = list(M=M, X.bc=X.bc, X.bc.dim=X.bc.dim)),
+                 nrow=length(M), ncol = G))
+    } else {
+      for(i in seq_along(M)){
+        this.M <- M
+        curr.g <- M[i]
+        for(g in 1:G){
+          # drop i from g if in the group, add i to g if not in the group
+          this.M[i] <- ifelse(g == curr.g, NA, g)
+          if(measure == "Q"){
+            out[i,g] <- getQ(X[which(this.M==g),,])
+          }
         }
       }
+      return(out)
     }
-    return(out)
   }
-  .idSwap <- function(current, candidate, M, G=length(unique(M))){
-    gainMat <- .getGainMat(current, candidate, M, G=length(unique(M)))
-    best.change <- max(gainMat, na.rm = TRUE)
-    if(best.change<0){
-      swap.i <- 0
-      swap.g <- 0
-    } else {
-      best.indx <- which(gainMat==best.change, arr.ind = TRUE)
-      # if there are multiple, pick the best one
-      best.indx.row <- sample(dim(best.indx)[1], 1)
-      swap.i <- best.indx[best.indx.row, 1]
-      swap.g <- best.indx[best.indx.row, 2]
-    }
-    return(list(i=swap.i, g=swap.g))
-  }    
+  
   # .updateCandidate updates the "calculated values matrix" 
   .updateCandidate <- function(M, X, candidate, update.i, update.g, 
                                G=length(unique(M)), 
                                X.bc = NULL, X.bc.dim = NULL, measure = "b"){
-    if(measure == "b" && is.null(X.bc)){
-      X.bc <- barray(X)
-      if(!is.null(X.bc.dim[1])){
-        if(!all.equal(dim(X.bc), X.bc.dim)){
-          X.bc <- array(X.bc, X.bc.dim)
-        }
-      }  
-    } 
     if(!all.equal(dim(candidate), c(length(M), G))) return(print("error"))
-    out <- candidate
-    for(i in seq_along(M)){
-      this.M <- M
-      curr.g <- M[i]
-      for(g in 1:G){
-        if((i %in% update.i) || (g %in% update.g)){
-          # drop i from g if in the group, add i to g if not in the group
-          this.M[i] <- ifelse(g == curr.g, NA, g) 
-          if(measure == "b"){ 
-            out[i,g] <- getb(X.bc[which(this.M==g),,1,], 
-                             X.bc[which(this.M==g),,2,], 
-                             oneI = ifelse(length(which(this.M==g))==1, TRUE, FALSE),
-                             oneM = ifelse(X.bc.dim[length(X.bc.dim)]==1, TRUE, FALSE)) 
+    if(measure == "b"){
+      if(G <= 2){
+        return(
+          .initCandidate(M, G = length(unique(M)), 
+                         X.bc = X.bc, X.bc.dim = NULL, measure = "b")
+        )
+      } else {
+        out <- candidate
+        
+        # update groups in update.g (all consumers)
+        for(g in update.g){
+          for(i in seq_along(M)){
+            this.M <- M
+            curr.g <- M[i]
+            this.M[i] <- ifelse(g == curr.g, NA, g) 
+            g.mem <- which(this.M==g)
+            out[i,g] <- getb(X.bc[g.mem,,1,], 
+                             X.bc[g.mem,,2,], 
+                             oneI = (length(g.mem)==1),
+                             oneM = (X.bc.dim[length(X.bc.dim)]==1)) 
           }
-          if(measure == "Q"){ 
-            out[i,g] <- getQ(X[which(this.M==g),,]) 
+        }
+        # update consumers in update.i (groups in update.g already done)
+        for(i in update.i){
+          for(g in 1:G){
+            if(!(g %in% update.g)){
+              this.M <- M
+              curr.g <- M[i]
+              this.M[i] <- ifelse(g == curr.g, NA, g) 
+              g.mem <- which(this.M==g)
+              out[i,g] <- getb(X.bc[g.mem,,1,], 
+                               X.bc[g.mem,,2,], 
+                               oneI = (length(g.mem)==1),
+                               oneM = (X.bc.dim[length(X.bc.dim)]==1)) 
+            }
+          }
+        }
+        # for(i in seq_along(M)){
+        #   this.M <- M
+        #   curr.g <- M[i]
+        #   for(g in 1:G){
+        #     if((i %in% update.i) || (g %in% update.g)){
+        #       # drop i from g if in the group, add i to g if not in the group
+        #       this.M[i] <- ifelse(g == curr.g, NA, g) 
+        #       g.mem <- which(this.M==g)
+        #       out[i,g] <- getb(X.bc[g.mem,,1,], 
+        #                          X.bc[g.mem,,2,], 
+        #                          oneI = (length(g.mem)==1),
+        #                          oneM = (X.bc.dim[length(X.bc.dim)]==1)) 
+        #     }
+        #   }
+        # }
+        return(out)
+      }
+    } else {
+      out <- candidate
+      for(i in seq_along(M)){
+        this.M <- M
+        curr.g <- M[i]
+        for(g in 1:G){
+          if((i %in% update.i) || (g %in% update.g)){
+            # drop i from g if in the group, add i to g if not in the group
+            this.M[i] <- ifelse(g == curr.g, NA, g) 
+            out[i,g] <- getQ(X[which(this.M==g),,])
           }
         }
       }
+      return(out)
     }
-    return(out)
   }
+  
+  .getGainMatrix <- function(g, new.g, assessor, M=M, X.bc=X.bc, X.bc.dim=X.bc.dim){
+    this.M <- M
+    this.M[assessor] <- new.g
+    g.mem <- which(this.M==g)
+    return(
+      getb(X.bc[g.mem,,1,], X.bc[g.mem,,2,],
+           oneI = (length(g.mem)==1),
+           oneM = (X.bc.dim[length(X.bc.dim)]==1))
+    )
+  }
+  
+  # helper function for .getGainMat
+  .thisgain <- function(i, g, current = current, candidate = candidate, M = M){
+    if(M[i] == g){
+      return(NA)
+    } else {
+      return(sum(candidate[i, c(g, M[i])]) - sum(current[c(g, M[i])]))
+    } 
+  }
+
+  # .getGainMat calculates the update (gain) matrix U
+  .getGainMat <- function(current, candidate, M, G=length(unique(M))){
+      tmp <- cbind(assessor = rep(seq_along(M), times = G), 
+                   group = rep(1:G, each = length(M)),
+                   gain = NA)
+      return(matrix(mapply(.thisgain, 
+                           i = rep(seq_along(M), times = G), 
+                           g = rep(1:G, each = length(M)), 
+                           MoreArgs = list(current = current,
+                                           candidate = candidate,
+                                           M = M)), nrow = length(M)))
+  }
+  
+  .idSwap <- function(current, candidate, M, G=length(unique(M))){
+    gainMat <- .getGainMat(current, candidate, M, G=length(unique(M)))
+    best.change <- max(gainMat, na.rm = TRUE)
+    if(best.change<0){
+      return(list(i=0, g=0))
+    } else {
+      best.indx <- which(gainMat==best.change, arr.ind = TRUE)
+      if(dim(best.indx)[1] == 1){
+        return(list(i=best.indx[1], g=best.indx[2]))  
+      } else {
+        # if there are multiple, pick the best one
+        best.indx.row <- sample(dim(best.indx)[1], 1)
+        return(list(i=best.indx[best.indx.row, 1], 
+                    g=best.indx[best.indx.row, 2]))  
+      }
+    }
+  }
+  
   findJ <- function(njj){
     # we know that j is larger than 1 and less than njj
     j.guess <- 1
@@ -639,6 +716,23 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
     }
     return(j.guess)
   }
+  
+  # get M for a single run
+  .getM <- function(nI, G, seed){
+    set.seed(seed)
+    return(c(sample(G, G, replace = FALSE), sample(G, nI-G, replace = TRUE)))
+  }
+  
+  # get Ms for multiple runs
+  startMs <- function(nI, G, Seeds){
+    if(!is.null(M)){
+      return(cbind(M, mapply(.getM, rep(nI, runs-1), rep(G, runs-1), 
+                             (Seeds+1)[-1])))
+    } else {
+      return(mapply(.getM, rep(nI, runs), rep(G, runs), Seeds+1))
+    }
+  }
+  
   ## End of functions
   
   if(measure %in% "b" && X.input == "data"){
@@ -653,6 +747,14 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
     X.bc <- barray(X)
     nJJ <- dim(X.bc)[2]
   }
+  if(measure == "b" && is.null(X.bc)){
+    X.bc <- barray(X)
+    if(!is.null(X.bc.dim[1])){
+      if(!all.equal(dim(X.bc), X.bc.dim)){
+        X.bc <- array(X.bc, X.bc.dim)
+      }
+    }  
+  } 
   if (X.input %in% "bc"){
     if(measure %in% "Q"){
       return(print("b-cluster analysis requires raw data for measure Q"))
@@ -676,6 +778,7 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
     nM <- dim(X.bc)[4] # [5]
     nJ <- findJ(dim(X.bc)[2])
   }
+  
   if(is.null(dimnames(X.bc)[[1]])) dimnames(X.bc)[[1]] <- 1:nI
   if(is.null(dimnames(X.bc)[[2]])) dimnames(X.bc)[[2]] <- 1:nJJ
   if(is.null(dimnames(X.bc)[[3]])) dimnames(X.bc)[[3]] <- letters[2:3]
@@ -683,44 +786,21 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
   X.bc.dim <- c(nI, nJJ, 2, nM)
   
   if(measure %in% "b"){
-    totalB <- sum(abs(X.bc[,,1,]-X.bc[,,2,]))
+    totalB <- sum(abs(X.bc[,,1,] - X.bc[,,2,]))
   }
   if(measure %in% "Q"){
     totalQ <- sum(apply(X, c(1,3), stats::sd) > 0) * (nJ-1)
   }
-  
-  if(is.list(M)) M <- unlist(M, use.names = FALSE)
-  
-  bclust.list <- list()
-  
-  for(this.run in 1:runs){
-    set.seed(seed + this.run)
-    # use M provided only for run 1
-    if(is.null(M) || this.run > 1) M <- c(1:G, sample(G, nI-G, replace=TRUE))
-    
-    # Measure for groups
-    if(measure %in% "Q" && X.input == "data"){
-      current <- .getCurrent(M = M, X, measure=measure)
-    } else { #if (X.input == "bc"){
-      current <- .getCurrent(M = M, X.bc = X.bc, X.bc.dim = X.bc.dim, 
-                             measure=measure)
-    }
-    
-    # Enumerate impact of all (I*(G-1)) swaps
-    # ...out of group indicated by M
-    # ...and into one of the other (G-1) groups
-    
-    # Initialize candidate matrix (.initCandidate)
-    # Later update candidate matrix (.updateCandidate)
-    if(measure %in% "Q" && X.input == "data"){
-      candidate <- .initCandidate(M, X, measure = measure)
-    } else { #} if (X.input == "bc"){
-      candidate <- .initCandidate(M, X.bc = X.bc, X.bc.dim = X.bc.dim, 
-                                  measure = measure)
-    }
+
+  .bclustn <- function(M, X.bc, X.bc.dim, measure = "b"){
+    current <- .getCurrent(M = M, X.bc = X.bc, X.bc.dim = X.bc.dim, 
+                           measure=measure)
+    candidate <- .initCandidate(M, X = NULL, X.bc = X.bc, X.bc.dim = X.bc.dim, 
+                                measure = measure)
     it <- 0
     continue <- TRUE
-    Qual <- sum(current) # starting "quality" of solution
+    len.Qual <- 1
+    Qual <- c(sum(current), rep(NA, max.iter))
     while (continue){
       this.swap <- .idSwap(current, candidate, M)
       if(this.swap$i > 0){
@@ -728,59 +808,60 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
         # Update group membership vector
         M[this.swap$i] <- this.swap$g
         # Update candidate matrix
-        if(measure %in% "b" && X.input == "data"){
-          candidate <- .updateCandidate(M, X, candidate,
-                                        update.i = this.swap$i,
-                                        update.g = c(old.g, this.swap$g),
-                                        G=G, X.bc = X.bc, X.bc.dim = X.bc.dim, 
-                                        measure = measure)
-        } else {  #if (X.input == "bc"){
-          candidate <- .updateCandidate(M, X = NULL, candidate, 
-                                        update.i = this.swap$i, 
-                                        update.g = c(old.g, this.swap$g), 
-                                        G=G, X.bc = X.bc, X.bc.dim = X.bc.dim,
-                                        measure = measure)
-        }
+        candidate <- .updateCandidate(M, X = NULL, candidate, 
+                                      update.i = this.swap$i, 
+                                      update.g = c(old.g, this.swap$g), 
+                                      G=G, X.bc = X.bc, X.bc.dim = X.bc.dim,
+                                      measure = measure)
         # Recalculate current
-        if(measure %in% "Q" && X.input == "data"){
-          current <- .getCurrent(M = M, X, X.bc.dim = X.bc.dim, measure=measure)
-        } else { #} if (X.input == "bc"){
-          current <- .getCurrent(M = M, X = NULL, X.bc = X.bc, 
-                                 X.bc.dim = X.bc.dim, measure=measure)
-        }
+        current <- .getCurrent(M = M, X.bc = X.bc, 
+                               X.bc.dim = X.bc.dim, measure=measure)
         # Update quality measure
-        Qual <- c(Qual, sum(current))
+        Qual[it+2] <- sum(current) 
+        len.Qual <- len.Qual+1
       } else {
         continue <- FALSE # no further swaps improve the solution
+        break
       }
       it <- it + 1
-      if(it > max.iter) continue <- FALSE
-      #if(it > 6) if (stats::var(rev(Qual)[1:5])<tol) continue <- FALSE
-      # maybe this is better? i.e. zero progress over 6 iterations 
-      if(it > 6) if (abs(diff(rev(Qual)[c(1,6)]))<tol) continue <- FALSE
-      #if(it > 6) if(all.equal(rev(Qual[1:5]))) continue <- FALSE
+      if(it > max.iter){
+        continue <- FALSE
+        break
+      }
+      if(len.Qual > 6){
+        if (Qual[len.Qual] - Qual[len.Qual-5] < tol){
+          continue <- FALSE
+          break
+        } 
+      } 
     }
-    if(measure == "b"){
-      bclust.list[[this.run]] <- 
-        list(cluster = M, totalB = sum(abs(X.bc[,,1,]-X.bc[,,2,])),
-             retainedB = sum(current), progression = Qual, iter = it,
-             finish = it<=max.iter)
-    }
-    if(measure == "Q"){
-      bclust.list[[this.run]] <- 
-        list(cluster = M, totalQ = sum(apply(X, c(1,3), stats::sd) > 0)*(nJ-1),
-             retainedQ = sum(current), progression = Qual, iter = it, 
-             finish = it<=max.iter)
-    }
-    class(bclust.list[[this.run]]) <- "bclust.n"
+    o <- 
+      list(cluster = M, totalB = sum(abs(X.bc[,,1,]-X.bc[,,2,])),
+           retainedB = sum(current), 
+           progression = Qual[1:len.Qual], iter = it,
+           finish = it<=max.iter)
+    class(o) <- "bclust.n"
+    return(o)
   }
   
-  if(runs == 1){
-    out <- bclust.list[[1]]
+  if(runs > 1){
+    if(is.null(M[[1]])){
+      Ms <- startMs(nI, G, seed:(seed+runs-1))
+    } 
+    Ls <- lapply(seq_len(ncol(Ms)), function(i) Ms[,i])
+    invisible(lapply(Ls, function(m){
+      .bclustn(M = unlist(m), X.bc = X.bc, X.bc.dim = X.bc.dim, measure = measure)
+    }))
   } else {
-    out <- bclust.list
+    if(is.list(M)){ 
+      M <- unlist(M, use.names = FALSE)
+    } else {
+      if(is.null(M[[1]])){
+        M <- .getM(nI, G, seed)
+      }
+    }
+    invisible(.bclustn(M = unlist(M), X.bc = X.bc, X.bc.dim = X.bc.dim, measure = measure))
   }
-  invisible(out)
 }
 
 #' Inspect/summarize many b-cluster analysis runs
@@ -1018,13 +1099,9 @@ getb <- function(X.b, X.c, oneI = FALSE, oneM = FALSE){
     return("Cannot calculate b-measure for unequal sized arrays")
   }
   # keep 3-way array structure
-  r1 <-  array(X.b - X.c, dims)
-  r2 <-  array(X.b + X.c, dims)
-  # calculate and return b-measure
-  this.numerator <-  apply(r1, 2:3, sum)
-  this.denominator <- apply(r2, 2:3, sum)
-  res <- sum((this.numerator^2)/this.denominator, na.rm = TRUE)
-  return(res)
+  return(sum(((apply(array(X.b - X.c, dims), 2:3, sum)^2) /
+                (apply(array(X.b + X.c, dims), 2:3, sum))), na.rm = TRUE))
+  
 }
 
 #' Cochran's Q test

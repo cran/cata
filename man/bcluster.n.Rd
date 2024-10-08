@@ -15,7 +15,8 @@ attributes)}
 
 \item{G}{number of clusters (required for non-hierarchical algorithm)}
 
-\item{M}{initial cluster memberships}
+\item{M}{initial cluster memberships (default: \code{NULL}), but can be a vector
+(one run) or a matrix (consumers in rows; runs in columns)}
 
 \item{measure}{\code{b} (default) for the \code{b}-measure is implemented}
 
