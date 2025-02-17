@@ -8,13 +8,13 @@
 getb(X.b, X.c, oneI = FALSE, oneM = FALSE)
 }
 \arguments{
-\item{X.b}{three-way (\code{I, J(J-1)/2, M}) array with 
-\code{I} assessors, \code{J(J-1)/2} product comparisons, \code{M} CATA 
-attributes, where values are counts of type \code{b} from the function 
+\item{X.b}{three-way (\eqn{I \times J(J-1)/2 \times M}) array with 
+\eqn{I} assessors, \eqn{J(J-1)/2} product comparisons, \eqn{M} CATA 
+attributes, where values are counts of types \code{b} and \code{c} from the function 
 \code{\link[cata]{barray}})}
 
 \item{X.c}{array of same dimension as \code{X.b}, where values are counts of 
-type \code{b} from the function \code{\link[cata]{barray}})}
+types \code{b} and \code{c} from the function \code{\link[cata]{barray}})}
 
 \item{oneI}{indicates whether calculation is for one assessor (default: 
 \code{FALSE})}

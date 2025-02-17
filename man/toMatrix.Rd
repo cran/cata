@@ -8,8 +8,8 @@
 toMatrix(X, header.rows = TRUE, oneI = FALSE, oneM = FALSE)
 }
 \arguments{
-\item{X}{three-dimensional array (\code{I} assessors, \code{J}
-products, \code{M} attributes) where values are \code{0} (not checked) 
+\item{X}{three-dimensional array (\eqn{I} assessors, \eqn{J}
+products, \eqn{M} attributes) where values are \code{0} (not checked) 
 or \code{1} (checked)}
 
 \item{header.rows}{\code{TRUE} (default) includes row headers; set to
@@ -22,14 +22,14 @@ or \code{1} (checked)}
 \code{FALSE})}
 }
 \value{
-A matrix with \code{I} assessors * \code{J} products in rows
-and \code{M} attributes in columns (preceded by 2 columns)
+A matrix with \eqn{I} assessors \eqn{\times J} products in rows
+and \eqn{M} attributes in columns (preceded by 2 columns)
 of headers if \code{header.rows = TRUE}
 }
 \description{
-Converts a three-dimensional array (\code{I} assessors, \code{J}
-products, \code{M} attributes) to a two-dimensional matrix with
-(\code{I} assessors, \code{J} products) rows and (\code{M} 
+Converts a three-dimensional array (\eqn{I} assessors, \eqn{J}
+products, \eqn{M} attributes) to a two-dimensional matrix with
+(\eqn{I} assessors, \eqn{J} products) rows and (\eqn{M} 
 attributes) columns, optionally preceded by two columns of row headers.
 }
 \examples{

@@ -8,8 +8,8 @@
 barray(X, values = "bc", type.in = "binary", type.out = "binary")
 }
 \arguments{
-\item{X}{three-dimensional array (\code{I} assessors, \code{J}
-products, \code{M} attributes) where values are \code{0} (not checked) 
+\item{X}{three-dimensional array (\eqn{I} assessors, \eqn{J}
+products, \eqn{M} attributes) where values are \code{0} (not checked) 
 or \code{1} (checked)}
 
 \item{values}{\code{"bc"} (default) returns two outcomes: \code{b} and 
@@ -22,15 +22,15 @@ or \code{1} (checked)}
 \item{type.out}{currently only \code{binary} is implemented}
 }
 \value{
-A four-dimensional array of product comparisons having \code{I} 
-assessors, \code{J(J-1)/2} product comparisons, outcomes (see \code{values}
-parameter), \code{M} attributes
+A four-dimensional array of product comparisons having \eqn{I} 
+assessors, \eqn{J(J-1)/2} product comparisons, outcomes (see \code{values}
+parameter), \eqn{M} attributes
 }
 \description{
-Converts a three-dimensional array (\code{I} assessors, \code{J}
-products, \code{M} attributes) to a four-dimensional array of product
-comparisons (\code{I} assessors, \code{J(J-1)/2}
-product comparisons, two outcomes (of type \code{b} or \code{c}), \code{M} 
+Converts a three-dimensional array (\eqn{I} assessors, \eqn{J}
+products, \eqn{M} attributes) to a four-dimensional array of product
+comparisons (\eqn{I} assessors, \eqn{J(J-1)/2}
+product comparisons, two outcomes (of type \code{b} or \code{c}), \eqn{M} 
 attributes)
 }
 \examples{

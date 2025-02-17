@@ -3,10 +3,9 @@
 #' Within a group of \code{N} consumers, the Homogeneity index lies between
 #' \code{1/N} (no homogeneity) to \code{1} (perfect homogeneity). 
 #' @name homogeneity
-#' @aliases homogeneity
 #' @usage homogeneity(X, oneI = FALSE, oneM = FALSE)
-#' @param X three-way array; the \code{I, J, M} array has \code{I}
-#' assessors, \code{J} products, \code{M} attributes where CATA data have values 
+#' @param X three-way array; the \eqn{I \times J \times M} array has \eqn{I}
+#' assessors, \eqn{J} products, \eqn{M} attributes where CATA data have values 
 #' \code{0} (not checked) and \code{1} (checked)
 #' @param oneI indicates whether calculation is for one assessor (default: 
 #' \code{FALSE})
@@ -16,7 +15,7 @@
 #' @export
 #' @encoding UTF-8
 #' @references Llobell, F., Cariou, V., Vigneau, E., Labenne, A., & Qannari, 
-#' E. M. (2019). A new approach for the analysis of data and the clustering of  
+#' E.M. (2019). A new approach for the analysis of data and the clustering of  
 #' subjects in a CATA experiment. \emph{Food Quality and Preference}, 72, 31-39, 
 #' \doi{10.1016/j.foodqual.2018.09.006}
 #' 
@@ -80,14 +79,13 @@ homogeneity <- function(X, oneI = FALSE, oneM = FALSE){
 #' overall diversity (coverage), average RV, sensory differentiation retained,
 #' and within-cluster homogeneity. 
 #' @name evaluateClusterQuality
-#' @aliases evaluateClusterQuality
 #' @usage evaluateClusterQuality(X, M, alpha = .05, M.order = NULL, 
 #' quiet = FALSE, digits = getOption("digits"), ...)
-#' @param X three-way array; the \code{I, J, M} array has \code{I}
-#' assessors, \code{J} products, \code{M} attributes where CATA data have values 
+#' @param X three-way array; the \eqn{I \times J \times M} array has \eqn{I}
+#' assessors, \eqn{J} products, \eqn{M} attributes where CATA data have values 
 #' \code{0} (not checked) and \code{1} (checked)
 #' @param M  cluster memberships
-#' @param alpha significance level to be used for two-tailed tests
+#' @param alpha significance level for two-tailed tests (default: \eqn{\alpha = 0.05})
 #' @param M.order can be used to change the cluster numbers (e.g. to label 
 #' cluster 1 as cluster 2 and vice versa); defaults to \code{NULL}
 #' @param quiet if \code{FALSE} (default) then it prints information quality
@@ -97,7 +95,7 @@ homogeneity <- function(X, oneI = FALSE, oneM = FALSE){
 #' \code{quiet = TRUE}).
 #' @return A list containing cluster analysis quality measures: 
 #' \itemize{
-#'  \item{\code{$solution} : 
+#' \item{\code{$solution} : 
 #'    \itemize{
 #'    \item{\code{Pct.b} = percentage of the total sensory differentiation 
 #'    retained in the solution}
@@ -107,7 +105,7 @@ homogeneity <- function(X, oneI = FALSE, oneM = FALSE){
 #'    homogeneity indices)}
 #'    \item{\code{avRV} = average RV coefficient for all between-cluster 
 #'    comparisons}}}
-#'  \item{\code{$clusters} : 
+#' \item{\code{$clusters} : 
 #'    \itemize{
 #'    \item{\code{ng} = number of cluster members}
 #'    \item{\code{bg} = sensory differentiation retained in cluster}
@@ -115,11 +113,11 @@ homogeneity <- function(X, oneI = FALSE, oneM = FALSE){
 #'    \item{\code{Hg} = homogeneity index within cluster (see 
 #'    \code{\link[cata]{homogeneity}})}
 #'    \item{\code{Dg} = within-cluster product discrimination}}}
-#'  \item{\code{$nonredundancy.clusterpairs} : 
+#' \item{\code{$nonredundancy.clusterpairs} : 
 #'    \itemize{
 #'    \item{square data frame showing non-redundancy for each pair of clusters
 #'    (low values indicate high redundancy)}}}
-#'  \item{\code{$rv.clusterpairs} : 
+#' \item{\code{$rv.clusterpairs} : 
 #'    \itemize{
 #'    \item{square data frame with RV coefficient for each pair of clusters
 #'    (high values indicate higher similarity in product configurations)}}}}
@@ -331,19 +329,20 @@ evaluateClusterQuality <- function(X, M, alpha = .05, M.order = NULL,
 
 #' Adjusted Rand index
 #'
-#' Calculate the adjusted Rand index between two sets of cluster memberships. 
+#' Calculate the adjusted Rand index (ARI) between two sets of cluster memberships. 
 #' @name ARI
-#' @aliases ARI
 #' @usage ARI(x, y, signif = FALSE, n = 1000)
 #' @param x vector of cluster memberships (integers)
 #' @param y vector of cluster memberships (integers)
 #' @param signif conduct significance test; default is \code{FALSE}
 #' @param n number of replicates in Monte Carlo significance test
-#' @return ari adjusted Rand index
-#' @return nari normalized adjusted Rand index 
-#' @return sim.mean average value of null distribution (should be closed to zero)
-#' @return sim.var variance of null distribution
-#' @return pvalue P value of observed ARI (or NARI) value
+#' @return list of the following:
+#' \itemize{
+#' \item{\code{ari} adjusted Rand index}
+#' \item{\code{nari} normalized adjusted Rand index}
+#' \item{\code{sim.mean} average value of null distribution (should be closed to zero)}
+#' \item{\code{sim.var} variance of null distribution}
+#' \item{\code{p.value} P value of observed ARI (or NARI) value}}
 #' @export
 #' @encoding UTF-8
 #' @references Hubert, L., & Arabie, P. (1985). Comparing partitions. 
@@ -414,7 +413,7 @@ ARI <- function(x, y, signif = FALSE, n = 1000){
                 nari = nari, 
                 sim.mean = nari.sim.mean,
                 sim.var = nari.sim.var,
-                pvalue = pval))
+                p.value = pval))
   } else {
     return(list(ari = ari))
   }
@@ -426,7 +425,6 @@ ARI <- function(x, y, signif = FALSE, n = 1000){
 #' obtained from b-cluster analysis. This plot can be used to help the decision
 #' of how many clusters to retain. 
 #' @name selectionPlot
-#' @aliases selectionPlot
 #' @usage selectionPlot(x, pctB = NULL, x.input = "deltaB", indx = NULL, 
 #' ylab = "change in B (K to G)", xlab = NULL)
 #' @param x input vector which is either deltaB (default; change 

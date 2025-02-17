@@ -5,12 +5,11 @@
 #' there are multiple runs. 
 #' 
 #' @name bcluster
-#' @aliases bcluster
 #' @usage bcluster(X, inspect = TRUE, inspect.plot = TRUE, algorithm = "n", 
 #' measure = "b", G = NULL, M = NULL, max.iter = 500, X.input = "data", 
 #' tol = exp(-32), runs = 1, seed = 2021)
-#' @param X three-way array with \code{I} assessors, \code{J} products, 
-#' \code{M} attributes where CATA data have values \code{0} (not checked) and 
+#' @param X three-way array with \eqn{I} assessors, \eqn{J} products, 
+#' \eqn{M} attributes where CATA data have values \code{0} (not checked) and 
 #' \code{1} (checked)
 #' @param inspect default (\code{TRUE}) calls the \code{\link[cata]{inspect}}
 #' function to evaluate all solutions (when \code{runs>1})
@@ -32,9 +31,8 @@
 #' @param seed for reproducibility (default is \code{2021})
 #' @return list with elements:
 #' \itemize{
-#' \item{\code{runs} : b-cluster analysis results from 
-#' \code{\link[cata]{bcluster.n}} or \code{\link[cata]{bcluster.h}} 
-#' (in a list if \code{runs>1})}
+#' \item{\code{runs} : b-cluster analysis results from \code{\link[cata]{bcluster.n}} 
+#' or \code{\link[cata]{bcluster.h}} (in a list if \code{runs>1})}
 #' \item{\code{inspect} : result from \code{\link[cata]{inspect}} (the plot from 
 #' this function is rendered if \code{inspect.plot} is \code{TRUE})}}
 #' @export
@@ -93,10 +91,9 @@ bcluster <- function(X, inspect = TRUE, inspect.plot = TRUE,
 #' Perform b-clustering using the hierarchical agglomerative clustering 
 #' strategy. 
 #' @name bcluster.h
-#' @aliases bcluster.h
 #' @usage bcluster.h(X, measure = "b", runs = 1, seed = 2021)
-#' @param X three-way array; the \code{I, J, M} array has \code{I}
-#' assessors, \code{J} products, \code{M} attributes where CATA data have values 
+#' @param X three-way array; the \eqn{I \times J \times M} array has \eqn{I}
+#' assessors, \eqn{J} products, \eqn{M} attributes where CATA data have values 
 #' \code{0} (not checked) and \code{1} (checked)
 #' @param measure currently only \code{b} (the \code{b}-measure) is implemented 
 #' @param runs number of runs (defaults to \code{1}; use a higher number of
@@ -234,17 +231,17 @@ bcluster.h <- function(X, measure = "b", runs = 1, seed = 2021){
   
   nI <- dim(X)[1]
   nJ <- dim(X)[2]
-  if(length(dim(X))==2){
-    X <- array(X, c(dim(X)[1], dim(X)[2], 1),
-               dimnames = list(dimnames(X)[[1]], dimnames(X)[[2]], "data"))
-  } 
+  if (length(dim(X)) == 2) {
+    X <- array(X, c(dim(X)[1], dim(X)[2], 1), dimnames = list(dimnames(X)[[1]], 
+                                                              dimnames(X)[[2]], "data"))
+  }
   nM <- dim(X)[3]
   X.bc <- barray(X)
-  if(length(dim(X.bc))==3){
-    X.bc <- array(X.bc, c(dim(X.bc)[1], dim(X.bc)[2], 2, 1),
-               dimnames = list(dimnames(X.bc)[[1]], dimnames(X.bc)[[2]],
-                              letters[2:3], "data"))
-  } 
+  if (length(dim(X.bc)) == 3) {
+    X.bc <- array(X.bc, c(dim(X.bc)[1], dim(X.bc)[2], 2, 
+                          1), dimnames = list(dimnames(X.bc)[[1]], dimnames(X.bc)[[2]], 
+                                              letters[2:3], "data"))
+  }
   nJJ <- dim(X.bc)[2]
   
   if(is.null(dimnames(X.bc)[[1]])) dimnames(X.bc)[[1]] <- 1:nI
@@ -426,7 +423,6 @@ bcluster.h <- function(X, measure = "b", runs = 1, seed = 2021){
 #' Non-hierarchical b-cluster analysis transfers assessors iteratively to
 #' reach a local maximum in sensory differentiation retained.
 #' @name bcluster.n
-#' @aliases bcluster.n
 #' @usage bcluster.n(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
 #' X.input = "data", tol = exp(-32), seed = 2021)
 #' @param X CATA data organized in a three-way array (assessors, products, 
@@ -467,21 +463,6 @@ bcluster.h <- function(X, measure = "b", runs = 1, seed = 2021){
 #' (b <- bcluster.n(bread$cata[1:8, , 1:5], G=2))
 bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
                        X.input = "data", tol = exp(-32), seed = 2021){
-  bcluster.call <- match.call()
-  
-  if(!is.null(M) & runs > 1){
-    print("Cluster memberships in M will be the starting point for run 1.")
-    print("Subsequent runs will use random start.")
-    user.yn <- readline("Continue? (y/n): ")
-    if(user.yn != "y"){
-      return(print("Cluster analysis stopped"))
-    }
-  } 
-  if(!(measure %in% c("b", "Q"))){
-    return(print("Value for measure must be one of \"b\" or \"Q\"", 
-                 quote = FALSE))
-  }
-  
   ## Functions
   getQ <- function(X){
     if(length(dim(X))<3){
@@ -504,7 +485,7 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
         X.bc <- array(X.bc, X.bc.dim)
       }  
     } 
-    oneM <- (X.bc.dim[length(X.bc.dim)]==1)
+    oneM <- (X.bc.dim[length(X.bc.dim)] == 1)
     b.bygroup <- function(g, M, oneM){
       g.mem <- which(M==g)
       return(getb(X.bc[g.mem,,1,], X.bc[g.mem,,2,],
@@ -516,7 +497,7 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
     if(measure == "Q"){
       for(g in 1:G){
         g.mem <- which(M==g)
-        current[g] <- getQ(X[g.mem,,])
+        current[g] <- getQ(X[g.mem,, ,drop=FALSE])
       }
     } 
   }
@@ -562,7 +543,7 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
           # drop i from g if in the group, add i to g if not in the group
           this.M[i] <- ifelse(g == curr.g, NA, g)
           if(measure == "Q"){
-            out[i,g] <- getQ(X[which(this.M==g),,])
+            out[i,g] <- getQ(X[which(this.M==g),,,drop=FALSE])
           }
         }
       }
@@ -638,7 +619,7 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
           if((i %in% update.i) || (g %in% update.g)){
             # drop i from g if in the group, add i to g if not in the group
             this.M[i] <- ifelse(g == curr.g, NA, g) 
-            out[i,g] <- getQ(X[which(this.M==g),,])
+            out[i,g] <- getQ(X[which(this.M==g),, ,drop=FALSE])
           }
         }
       }
@@ -733,65 +714,6 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
     }
   }
   
-  ## End of functions
-  
-  if(measure %in% "b" && X.input == "data"){
-    if(length(dim(X)) == 2){
-      X <- array(X, c(dim(X)[1], dim(X)[2], 1), 
-                 dimnames = 
-                   list(dimnames(X)[[1]], dimnames(X)[[2]], "data"))
-    }
-    nI <- dim(X)[1]
-    nJ <- dim(X)[2]
-    nM <- dim(X)[3]
-    X.bc <- barray(X)
-    nJJ <- dim(X.bc)[2]
-  }
-  if(measure == "b" && is.null(X.bc)){
-    X.bc <- barray(X)
-    if(!is.null(X.bc.dim[1])){
-      if(!all.equal(dim(X.bc), X.bc.dim)){
-        X.bc <- array(X.bc, X.bc.dim)
-      }
-    }  
-  } 
-  if (X.input %in% "bc"){
-    if(measure %in% "Q"){
-      return(print("b-cluster analysis requires raw data for measure Q"))
-    }
-    X.bc <- X
-  }
-  msg <- NULL
-  if(length(dim(X.bc)) == 3){
-    msg <- "Cluster analysis will proceed assuming there is only 1 response variable"
-    if(!is.null(msg)) print(msg)
-    X.bc <- array(X.bc, c(dim(X.bc)[1], dim(X.bc)[2], dim(X.bc)[3], 1), 
-               dimnames = 
-                 list(dimnames(X.bc)[[1]], dimnames(X.bc)[[2]], 
-                      dimnames(X.bc)[[3]], "data"))
-  }
-  if (X.input %in% "bc"){
-    # X.bc <- X
-    X <- NULL
-    nI <- dim(X.bc)[1]
-    nJJ <- dim(X.bc)[2]
-    nM <- dim(X.bc)[4] # [5]
-    nJ <- findJ(dim(X.bc)[2])
-  }
-  
-  if(is.null(dimnames(X.bc)[[1]])) dimnames(X.bc)[[1]] <- 1:nI
-  if(is.null(dimnames(X.bc)[[2]])) dimnames(X.bc)[[2]] <- 1:nJJ
-  if(is.null(dimnames(X.bc)[[3]])) dimnames(X.bc)[[3]] <- letters[2:3]
-  if(is.null(dimnames(X.bc)[[4]])) dimnames(X.bc)[[4]] <- 1:nM
-  X.bc.dim <- c(nI, nJJ, 2, nM)
-  
-  if(measure %in% "b"){
-    totalB <- sum(abs(X.bc[,,1,] - X.bc[,,2,]))
-  }
-  if(measure %in% "Q"){
-    totalQ <- sum(apply(X, c(1,3), stats::sd) > 0) * (nJ-1)
-  }
-
   .bclustn <- function(M, X.bc, X.bc.dim, measure = "b"){
     current <- .getCurrent(M = M, X.bc = X.bc, X.bc.dim = X.bc.dim, 
                            measure=measure)
@@ -801,6 +723,9 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
     continue <- TRUE
     len.Qual <- 1
     Qual <- c(sum(current), rep(NA, max.iter))
+    
+    ### consider converting the while-loop to a for-loop (with a break) for performance
+    
     while (continue){
       this.swap <- .idSwap(current, candidate, M)
       if(this.swap$i > 0){
@@ -844,6 +769,73 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
     return(o)
   }
   
+  ## End of functions
+  
+  bcluster.call <- match.call()
+  
+  if(!is.null(M) & runs > 1){
+    print("Cluster memberships in M will be the starting point for run 1.")
+    print("Subsequent runs will use random start.")
+    user.yn <- readline("Continue? (y/n): ")
+    if(user.yn != "y"){
+      return(print("Cluster analysis stopped"))
+    }
+  } 
+  if(!(measure %in% c("b", "Q"))){
+    return(print("Value for measure must be one of \"b\" or \"Q\"", 
+                 quote = FALSE))
+  }
+
+  if(measure %in% "b"){
+    if(X.input %in% "data"){
+      if(length(dim(X)) == 2){
+        X <- array(X, c(dim(X)[1], dim(X)[2], 1), 
+                   dimnames = 
+                     list(dimnames(X)[[1]], dimnames(X)[[2]], "data"))
+      }
+      nJ <- dim(X)[2]
+      X.bc <- barray(X)
+    }
+    if(X.input %in% "bc"){
+      X.bc <- X
+      X <- NULL
+      nJ <- findJ(dim(X.bc)[2])
+    }
+    nI <- dim(X.bc)[1]
+    nJJ <- dim(X.bc)[2]
+    nM <- dim(X.bc)[4]
+  }
+  if(measure %in% "Q"){
+    if(X.input %in% "data"){
+      X.bc <- X
+    }
+    if(X.input %in% "bc"){
+      return(print("b-cluster analysis requires raw data for measure Q"))
+    }
+  }
+  msg <- NULL
+  if(length(dim(X.bc)) == 3){
+    msg <- "Cluster analysis will proceed assuming there is only 1 response variable"
+    if(!is.null(msg)) print(msg)
+    X.bc <- array(X.bc, c(dim(X.bc), 1), 
+               dimnames = 
+                 list(dimnames(X.bc)[[1]], dimnames(X.bc)[[2]], 
+                      dimnames(X.bc)[[3]], "data"))
+  }
+  if(is.null(dimnames(X.bc)[[1]])) dimnames(X.bc)[[1]] <- 1:nI
+  if(is.null(dimnames(X.bc)[[2]])) dimnames(X.bc)[[2]] <- 1:nJJ
+  if(is.null(dimnames(X.bc)[[3]])) dimnames(X.bc)[[3]] <- letters[2:3]
+  if(is.null(dimnames(X.bc)[[4]])) dimnames(X.bc)[[4]] <- 1:nM
+  
+  X.bc.dim <- c(nI, nJJ, 2, nM)
+  
+  if(measure %in% "b"){
+    totalB <- sum(abs(X.bc[,,1,] - X.bc[,,2,]))
+  }
+  if(measure %in% "Q"){
+    totalQ <- sum(apply(X, c(1,3), stats::sd) > 0) * (nJ-1)
+  }
+
   if(runs > 1){
     if(is.null(M[[1]])){
       Ms <- startMs(nI, G, seed:(seed+runs-1))
@@ -869,7 +861,6 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
 #' Inspect many runs of b-cluster analysis. Calculate sensory differentiation 
 #' retained and recurrence rate.  
 #' @name inspect
-#' @aliases inspect
 #' @usage inspect(X, G = 2, bestB = NULL, bestM = NULL, inspect.plot = TRUE)
 #' @param X list of multiple runs of b-cluster analysis results from 
 #' \code{\link[cata]{bcluster.n}} or \code{\link[cata]{bcluster.h}} 
@@ -1052,14 +1043,13 @@ inspect <- function(X, G = 2, bestB = NULL, bestM = NULL, inspect.plot = TRUE){
 #' Function to calculate the b-measure, which quantifies the sensory 
 #' differentiation retained. 
 #' @name getb
-#' @aliases getb
 #' @usage getb(X.b, X.c, oneI = FALSE, oneM = FALSE)
-#' @param X.b three-way (\code{I, J(J-1)/2, M}) array with 
-#' \code{I} assessors, \code{J(J-1)/2} product comparisons, \code{M} CATA 
-#' attributes, where values are counts of type \code{b} from the function 
+#' @param X.b three-way (\eqn{I \times J(J-1)/2 \times M}) array with 
+#' \eqn{I} assessors, \eqn{J(J-1)/2} product comparisons, \eqn{M} CATA 
+#' attributes, where values are counts of types \code{b} and \code{c} from the function 
 #' \code{\link[cata]{barray}})
 #' @param X.c array of same dimension as \code{X.b}, where values are counts of 
-#' type \code{b} from the function \code{\link[cata]{barray}})
+#' types \code{b} and \code{c} from the function \code{\link[cata]{barray}})
 #' @param oneI indicates whether calculation is for one assessor (default: 
 #' \code{FALSE})
 #' @param oneM  indicates whether calculation is for one attribute (default: 
@@ -1106,26 +1096,27 @@ getb <- function(X.b, X.c, oneI = FALSE, oneM = FALSE){
 
 #' Cochran's Q test
 #'
-#' Calculate Cochran's Q test statistic. The null hypothesis that is assumed is 
-#' that product proportions are all equal. The alternative hypothesis is that 
-#' product proportions are not all equal.
+#' Conduct Cochran's Q test assuming equal columns proportions for matched binary
+#' responses versus the alternative hypothesis of unequal column proportions.
 #' @name cochranQ
-#' @aliases cochranQ
-#' @usage cochranQ(X, na.rm = TRUE, quiet = FALSE, digits = getOption("digits"))
-#' @param X matrix of \code{I} assessors (rows) and \code{J} products (columns)
+#' @usage cochranQ(X, quiet = FALSE, digits = getOption("digits"))
+#' @param X matrix of \eqn{I} assessors (rows) and \eqn{J} products (columns)
 #' where values are \code{0} (not checked) or \code{1} (checked)
-#' @param na.rm should \code{NA} values be removed?
 #' @param quiet if \code{FALSE} (default) then it prints information related to 
 #' the test; if \code{TRUE} it returns only the test statistic (\code{Q})
-#' @param digits significant digits (to display)
-#' @return Q test statistic
+#' @param digits for rounding
+#' @return Cochran's Q test results (statistic, degrees of freedom, p-value)
 #' @export
+#' @details
+#' Method returns test statistic, degrees of freedom, and p value from Cochran's
+#' Q test.
+#' 
 #' @encoding UTF-8
 #' @seealso \code{\link[cata]{mcnemarQ}}
 #' @references  
 #' 
-#' Cochran, W. G. (1950). The comparison of percentages in matched samples. 
-#' \emph{Biometrika}, 37, 256-266.
+#' Cochran, W.G. (1950). The comparison of percentages in matched samples. 
+#' \emph{Biometrika}, 37, 256-266, \doi{10.2307/2332378} 
 #' 
 #' Meyners, M., Castura, J.C., & Carr, B.T. (2013). Existing and  
 #' new approaches for the analysis of CATA data. \emph{Food Quality and Preference}, 
@@ -1133,30 +1124,50 @@ getb <- function(X.b, X.c, oneI = FALSE, oneM = FALSE){
 #' @examples
 #' data(bread)
 #' 
-#' # Cochran's Q test on the first 25 consumers on the first attribute ("Fresh")
-#' cochranQ(bread$cata[1:25,,1])
-cochranQ <- function(X, na.rm = TRUE, quiet = FALSE, 
-                     digits = getOption("digits")){
+#' # Cochran's Q test on the first 50 consumers on the first attribute ("Fresh")
+#' cochranQ(bread$cata[1:50, , 1], digits=3)
+#' 
+#' # Same, returning only test statistics for the first 4 attributes
+#' t(res <- apply(bread$cata[1:50, , 1:4], 3, cochranQ, quiet=TRUE, digits=3))
+cochranQ <- function(X, quiet = FALSE, digits = getOption("digits")){
   if(is.vector(X)){
     X <- matrix(X, nrow = 1)
   }
-  if(na.rm){
-    X <- X[stats::complete.cases(X),]
-    if(is.vector(X)){
-      X <- matrix(X, nrow = 1)
+  X <- matrix(as.integer(X), nrow = nrow(X), ncol = ncol(X), dimnames=dimnames(X))
+  Jn <- ncol(X)
+  X <- X[which((rowSums(X) < Jn) & (rowSums(X) > 0)), , drop=FALSE] 
+  if(sum(X) == 0){
+    if(!quiet){
+      print("No variability in X")
     }
+    return(c(Q = NA, df = Jn - 1, p.value = NA, effect.size = NA))
   }
-  X <- X[which(rowSums(X) < ncol(X)),]
-  if(is.vector(X)){
-    X <- matrix(X, nrow = 1)
-  }
-  if(sum(X)==0){
-    return(Q = 0)
-  } 
-  numQ <- (ncol(X) * (ncol(X)-1) * (sum(colSums(X)^2) - 
-                                      (sum(colSums(X))^2)/ncol(X)))
-  denomQ <-  ncol(X) * sum(rowSums(X))-sum(rowSums(X)^2)
+  Jn <- ncol(X)
+  # Cochran's Q test
+  numQ <- (Jn * (Jn-1) * (sum(colSums(X)^2) - 
+                            (sum(X)^2)/Jn))
+  denomQ <-  Jn * sum(X) - sum(rowSums(X)^2)
   Q = numQ / denomQ
+  # chance-corrected effect size
+  # In <- nrow(X) # blocks
+  # if(In == 1){ 
+  #   udelta <- delta <- 0
+  #   R = NA
+  # } else { # this condition is needed to calculate delta
+  #   Ipairs <- utils::combn(In, 2)
+  #   dnum <- sum(apply(Ipairs, 2, function(pindx) {
+  #     sum(abs(X[pindx[1], ] - X[pindx[2], ]))
+  #   }))
+  #   delta <- dnum/(Jn * ncol(Ipairs))
+  #   p_i <- apply(X, 1, mean)
+  #   udelta <- 1/ncol(Ipairs) * ((sum(p_i)*(In - sum(p_i))) - sum((p_i*(1-p_i))))
+  #   R = 1 - delta/udelta
+  # }
+  # report output
+  o <- c(Q  = round(Q, digits = digits), 
+         df = Jn - 1,
+         p.value = round(stats::pchisq(Q, Jn - 1, lower.tail = FALSE),
+                          digits = digits))#, effect.size=round(R, digits = digits))
   if(!quiet){
     cat(paste(c("",
                 "Cochran's Q test", 
@@ -1165,14 +1176,12 @@ cochranQ <- function(X, na.rm = TRUE, quiet = FALSE,
                 "H1: Citation rates are not equal for all products (columns)",
                 ""), 
               collapse = '\n'))
-    print(data.frame(Q  = signif(Q, digits = digits), 
-                     df = ncol(X)-1,
-                     p.value = 
-                       signif(stats::pchisq(Q, ncol(X)-1, lower.tail = FALSE),
-                              digits = digits),
-                     row.names = ""))
+    print(o[1:3])
+    # cat(paste(c("",
+    #             "Chance-corrected effect size: ", o["effect.size"], ""), 
+    #           collapse = '\n'))
   }
-  invisible(Q)
+  invisible(o)
 }
 
 #' McNemar's test
@@ -1180,14 +1189,12 @@ cochranQ <- function(X, na.rm = TRUE, quiet = FALSE,
 #' Pairwise tests are conducted using the two-tailed binomial test. These tests
 #' can be conducted after Cochran's Q test. 
 #' @name mcnemarQ
-#' @aliases mcnemarQ
-#' @usage mcnemarQ(X, na.rm = TRUE, quiet = FALSE, digits = getOption("digits"))
-#' @param X matrix of \code{I} assessors (rows) and \code{J} products (columns)
+#' @usage mcnemarQ(X, quiet = FALSE, digits = getOption("digits"))
+#' @param X matrix of \eqn{I} assessors (rows) and \eqn{J} products (columns)
 #' where values are \code{0} (not checked) or \code{1} (checked)
-#' @param na.rm should \code{NA} values be removed?
 #' @param quiet if \code{FALSE} (default) then it prints information related to 
 #' the test; if \code{TRUE} it returns only the test statistic (\code{Q})
-#' @param digits significant digits (to display)
+#' @param digits for rounding
 #' @return Test results for all McNemar pairwise tests conducted via the 
 #' binomial test
 #' @export
@@ -1195,7 +1202,7 @@ cochranQ <- function(X, na.rm = TRUE, quiet = FALSE,
 #' @seealso \code{\link[cata]{cochranQ}}
 #' @references  
 #' 
-#' Cochran, W. G. (1950). The comparison of percentages in matched samples. 
+#' Cochran, W.G. (1950). The comparison of percentages in matched samples. 
 #' \emph{Biometrika}, 37, 256-266. 
 #' 
 #' McNemar, Q. (1947). Note on the sampling error of the difference between 
@@ -1209,43 +1216,42 @@ cochranQ <- function(X, na.rm = TRUE, quiet = FALSE,
 #' data(bread)
 #' 
 #' # McNemar's exact pairwise test for all product pairs
-#' # on the first 25 consumers and the first attribute ("Fresh")
-#' mcnemarQ(bread$cata[1:25,,1])
-mcnemarQ <- function(X, na.rm = TRUE, quiet = FALSE, 
-                     digits = getOption("digits")){
+#' # on the first 50 consumers and the first attribute ("Fresh")
+#' mcnemarQ(bread$cata[1:50, , 1])
+#' 
+#' # Same, returning only results for the first 4 attributes
+#' (res <- apply(bread$cata[1:50, , 1:4], 3, mcnemarQ, quiet=TRUE, simplify=FALSE))
+mcnemarQ <- function(X, quiet = FALSE, digits = getOption("digits")){
   if(is.vector(X)){
-    return(print(
-      "Input X must be a matrix with at least 2 rows and 2 columns"))
-  }
-  if(na.rm){
-    X <- X[stats::complete.cases(X),]
-    if(is.vector(X)){
-      return(print(
-        "Input X must be a matrix with at least 2 rows and 2 columns"))
+    if(!quiet){
+      print("X must be a matrix with at least 2 rows and 2 columns")
     }
+    return(NA)
   }
-  X <- X[which(rowSums(X) < ncol(X)),]
-  if(is.vector(X)){
-    X <- matrix(X, nrow = 1)
+  X <- matrix(as.integer(X), nrow = nrow(X), ncol = ncol(X), dimnames=dimnames(X))
+  Jn <- ncol(X)
+  X <- X[which((rowSums(X) < Jn) & (rowSums(X) > 0)), , drop=FALSE] # this also deals with missings!
+  if(sum(X) == 0){
+    if(!quiet){
+      print("No variability in X")
+    }
+    return(NA)
   }
-  if(any(dim(X) == 1)){
-    return(print(
-      "Input X must be a matrix with at least 2 rows and 2 columns"))
-  }
-  if(sum(X)==0 || sum(X)==prod(dim(X))){
-    return(print("Input X must be a matrix with variability"))
-  }
-  res <- matrix(NA, nrow = choose(ncol(X), 2), ncol = 6,
+  res <- matrix(NA, nrow = choose(Jn, 2), ncol = 6,
                 dimnames = list(NULL, c("index.1", "index.2", "b", "c", 
                                         "proportion", "p.value")))
-  res[,1:2] <- t(utils::combn(ncol(X), 2))
-  res[,3:4] <- apply(barray(X), 2:3, sum)
-  res[,5] <- res[,3] / rowSums(res[,3:4])
+  res[,1:2] <- t(utils::combn(Jn, 2))
+  if(Jn == 2){
+    res[,3:4] <- colSums(X)
+    res[,5] <- res[,3] / sum(res[,3:4])
+  } else {
+    res[,3:4] <- apply(barray(X), 2:3, sum)
+    res[,5] <- res[,3] / rowSums(res[,3:4])
+  }
   res[,6] <- mapply(function(x, y){ 
     2*sum(stats::dbinom(0:min(x, sum(x,y)-x), size = sum(x,y), 
                         prob = .5))}, res[,3], res[,4])
   res[,6] <- mapply(min, res[,6], 1)
-
   if(!quiet){
     cat(paste(c("",
                 "McNemar's pairwise test", 
@@ -1255,7 +1261,7 @@ mcnemarQ <- function(X, na.rm = TRUE, quiet = FALSE,
                 "", ""), 
               collapse = '\n'))
     res.print <- res
-    res.print[,5:6] <- signif(res.print[,5:6], digits = digits)
+    res.print[,5:6] <- round(res.print[,5:6], digits = digits)
     print(as.data.frame(res.print, row.names = ""))
   }
   invisible(res)
@@ -1263,17 +1269,16 @@ mcnemarQ <- function(X, na.rm = TRUE, quiet = FALSE,
 
 #' Convert 3d array of CATA data to 4d array of CATA differences
 #'
-#' Converts a three-dimensional array (\code{I} assessors, \code{J}
-#' products, \code{M} attributes) to a four-dimensional array of product
-#' comparisons (\code{I} assessors, \code{J(J-1)/2}
-#' product comparisons, two outcomes (of type \code{b} or \code{c}), \code{M} 
+#' Converts a three-dimensional array (\eqn{I} assessors, \eqn{J}
+#' products, \eqn{M} attributes) to a four-dimensional array of product
+#' comparisons (\eqn{I} assessors, \eqn{J(J-1)/2}
+#' product comparisons, two outcomes (of type \code{b} or \code{c}), \eqn{M} 
 #' attributes)
 #'  
 #' @name barray
-#' @aliases barray
 #' @usage barray(X, values = "bc", type.in = "binary", type.out = "binary")
-#' @param X three-dimensional array (\code{I} assessors, \code{J}
-#' products, \code{M} attributes) where values are \code{0} (not checked) 
+#' @param X three-dimensional array (\eqn{I} assessors, \eqn{J}
+#' products, \eqn{M} attributes) where values are \code{0} (not checked) 
 #' or \code{1} (checked)
 #' @param values \code{"bc"} (default) returns two outcomes: \code{b} and 
 #' \code{c}; otherwise \code{"abcd"} returns four outcomes: \code{a}, \code{b}, 
@@ -1281,9 +1286,9 @@ mcnemarQ <- function(X, na.rm = TRUE, quiet = FALSE,
 #' @param type.in type of data submitted; default (\code{binary}) may be set to
 #' \code{ordinal} or \code{scale}.
 #' @param type.out currently only \code{binary} is implemented
-#' @return A four-dimensional array of product comparisons having \code{I} 
-#' assessors, \code{J(J-1)/2} product comparisons, outcomes (see \code{values}
-#' parameter), \code{M} attributes
+#' @return A four-dimensional array of product comparisons having \eqn{I} 
+#' assessors, \eqn{J(J-1)/2} product comparisons, outcomes (see \code{values}
+#' parameter), \eqn{M} attributes
 #' @export
 #' @encoding UTF-8
 #' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
@@ -1339,7 +1344,8 @@ barray <- function(X, values = "bc", type.in = "binary", type.out = "binary"){
                dimnames = list(dimnames(X)[[1]], 
                                apply(t(utils::combn(nJ,2)), 1, paste0, collapse = "_"), 
                                letters[1:4], 
-                               colnames(X[1,,])))
+                               dimnames(X)[[3]]#colnames(X[1,,])
+                               ))
   for (i in 1:nI){
     for(m in 1:nM){
       this.data <- X[i,,m]
@@ -1347,7 +1353,7 @@ barray <- function(X, values = "bc", type.in = "binary", type.out = "binary"){
     }
   }
   if (values == "bc") {
-    return(out[,, 2:3,])
+    return(out[,, 2:3,, drop=FALSE])
   } else {
     if (values == "abcd") {
       return(out)
@@ -1359,18 +1365,17 @@ barray <- function(X, values = "bc", type.in = "binary", type.out = "binary"){
 
 #' Converts 3d array of CATA data to a wide 2d matrix format
 #'
-#' Converts a three-dimensional array (\code{I} assessors, \code{J}
-#' products, \code{M} attributes) to a two-dimensional matrix
-#' (\code{J} products, (\code{I} assessors, \code{M} attributes))
+#' Converts a three-dimensional array (\eqn{I} assessors, \eqn{J}
+#' products, \eqn{M} attributes) to a two-dimensional matrix
+#' (\eqn{J} products, (\eqn{I} assessors, \eqn{M} attributes))
 #'  
 #' @name toWideMatrix
-#' @aliases toWideMatrix
 #' @usage toWideMatrix(X)
-#' @param X three-dimensional array (\code{I} assessors, \code{J}
-#' products, \code{M} attributes) where values are \code{0} (not checked) 
+#' @param X three-dimensional array (\eqn{I} assessors, \eqn{J}
+#' products, \eqn{M} attributes) where values are \code{0} (not checked) 
 #' or \code{1} (checked)
-#' @return A matrix with \code{J} products in rows and \code{I} 
-#' assessors * \code{M} attributes in columns
+#' @return A matrix with \code{J} products in rows and \eqn{I} 
+#' assessors \eqn{\times M} attributes in columns
 #' @export
 #' @encoding UTF-8
 #' @examples
@@ -1389,16 +1394,15 @@ toWideMatrix <- function(X){
 
 #' Converts 3d array of CATA data to a tall 2d matrix format
 #'
-#' Converts a three-dimensional array (\code{I} assessors, \code{J}
-#' products, \code{M} attributes) to a two-dimensional matrix with
-#' (\code{I} assessors, \code{J} products) rows and (\code{M} 
+#' Converts a three-dimensional array (\eqn{I} assessors, \eqn{J}
+#' products, \eqn{M} attributes) to a two-dimensional matrix with
+#' (\eqn{I} assessors, \eqn{J} products) rows and (\eqn{M} 
 #' attributes) columns, optionally preceded by two columns of row headers.
 #'  
 #' @name toMatrix
-#' @aliases toMatrix
 #' @usage toMatrix(X, header.rows = TRUE, oneI = FALSE, oneM = FALSE)
-#' @param X three-dimensional array (\code{I} assessors, \code{J}
-#' products, \code{M} attributes) where values are \code{0} (not checked) 
+#' @param X three-dimensional array (\eqn{I} assessors, \eqn{J}
+#' products, \eqn{M} attributes) where values are \code{0} (not checked) 
 #' or \code{1} (checked)
 #' @param header.rows \code{TRUE} (default) includes row headers; set to
 #' \code{FALSE} to exclude these headers
@@ -1406,8 +1410,8 @@ toWideMatrix <- function(X){
 #' \code{FALSE})
 #' @param oneM  indicates whether calculation is for one attribute (default: 
 #' \code{FALSE})
-#' @return A matrix with \code{I} assessors * \code{J} products in rows
-#' and \code{M} attributes in columns (preceded by 2 columns)
+#' @return A matrix with \eqn{I} assessors \eqn{\times J} products in rows
+#' and \eqn{M} attributes in columns (preceded by 2 columns)
 #' of headers if \code{header.rows = TRUE}
 #' @export
 #' @encoding UTF-8
@@ -1430,11 +1434,11 @@ toMatrix <- function(X, header.rows = TRUE, oneI = FALSE, oneM = FALSE){
         dims <- c(dims, 1) # nM was 1
       }
     }
-    X <- array(X, c(dims[1], dims[2], dims[3]))
+    X <- array(X, dim = dims)
   }
   if(length(dim(X)) == 2){
-    X <- array(X, c(dim(X)[1], dim(X)[2], 1), 
-               dimnames = list(dimnames(X)[[1]], dimnames(X)[[2]], "response"))
+    X <- array(X, c(dim(X), 1), dimnames = list(
+      dimnames(X)[[1]], dimnames(X)[[2]], "response"))
   }
   dims <- dim(X)
   if(length(dims) != 3){
@@ -1462,16 +1466,15 @@ toMatrix <- function(X, header.rows = TRUE, oneI = FALSE, oneM = FALSE){
   return(Xout)
 }
 
-#' Calculate RV Coefficient
+#' Calculate \eqn{RV} Coefficient
 #'
-#' Calculate RV coefficient
+#' Calculate \eqn{RV} coefficient
 #' @name rv.coef
-#' @aliases rv.coef
 #' @usage rv.coef(X, Y, method = 1)
 #' @param X input matrix (same dimensions as \code{Y})
 #' @param Y input matrix (same dimensions as \code{X})
-#' @param method \code{1} (default) and \code{2} give identical RV coefficients
-#' @return RV coefficient
+#' @param method \code{1} (default) and \code{2} give identical \eqn{RV} coefficients
+#' @return \eqn{RV} coefficient
 #' @export
 #' @encoding UTF-8
 #' @references Robert, P., & Escoufier, Y. (1976). A unifying tool for linear 
@@ -1487,10 +1490,10 @@ toMatrix <- function(X, header.rows = TRUE, oneI = FALSE, oneM = FALSE){
 #' rv.coef(X, Y)
 rv.coef <- function(X, Y, method = 1){
   tr <- function(X){
-    sum(diag(X))
+    sum(diag(X), na.rm = TRUE)
   }
-  X <- sweep(X, 2, apply(X, 2, mean), "-")
-  Y <- sweep(Y, 2, apply(Y, 2, mean), "-")
+  X <- sweep(X, 2, colMeans(X))#apply(X, 2, mean), "-")
+  Y <- sweep(Y, 2, colMeans(Y))#apply(Y, 2, mean), "-")
   XX <- tcrossprod(X,X)
   YY <- tcrossprod(Y,Y)
   if(method==1){
@@ -1498,8 +1501,8 @@ rv.coef <- function(X, Y, method = 1){
       sqrt(tr(XX %*% XX) %*% tr(YY %*% YY) )
   }
   if(method==2){
-    out <- sum(c(XX)*c(YY)) /
-      sqrt(sum(XX^2)*sum(YY^2))
+    out <- sum(c(XX)*c(YY), na.rm=TRUE) /
+      sqrt(sum(XX^2, na.rm=TRUE)*sum(YY^2, na.rm=TRUE))
   }
   return(c(out))
 }
@@ -1508,7 +1511,6 @@ rv.coef <- function(X, Y, method = 1){
 #'
 #' Calculate Salton's cosine measure
 #' @name salton
-#' @aliases salton
 #' @usage salton(X, Y)
 #' @param X input matrix (same dimensions as \code{Y})
 #' @param Y input matrix (same dimensions as \code{X})
@@ -1535,11 +1537,12 @@ salton <- function(X, Y){
 #'
 #' Apply top-k box coding to scale data. Using defaults give top-2 box (T2B) coding.
 #' @name code.topk
-#' @aliases code.topk
 #' @usage code.topk(X, zero.below = 8, one.above = 7)
 #' @param X input matrix
-#' @param zero.below default is \code{8}; values below this numeric threshold will be coded \code{0}; use \code{NULL} if there is no such threshold
-#' @param one.above default is \code{7}; values above this numeric threshold will be coded \code{1}; use \code{NULL} if there is no such threshold
+#' @param zero.below default is \code{8}; values below this numeric threshold 
+#' will be coded \code{0}; use \code{NULL} if there is no such threshold
+#' @param one.above default is \code{7}; values above this numeric threshold 
+#' will be coded \code{1}; use \code{NULL} if there is no such threshold
 #' @return matrix \code{X} with top-k coding applied
 #' @export
 #' @encoding UTF-8
@@ -1567,14 +1570,14 @@ code.topk <- function(X, zero.below = 8, one.above = 7){
   if(!is.null(one.above)){
     Y[Y > one.above] <- 1
   }
-  return(Y)
+  return(matrix(as.integer(Y), nrow = nrow(Y), ncol = ncol(Y), dimnames = dimnames(Y)) )
+  #return(Y)
 }
 
 #' Apply top-c choices coding to a vector of scale data from a respondent
 #'
 #' Apply top-c choices coding to a vector of scale data from a respondent
 #' @name topc
-#' @aliases topc
 #' @usage topc(x, c = 2, coding = "B")
 #' @param x input matrix
 #' @param c number of top choices considered to be 'success'; other choices are 
@@ -1616,5 +1619,4 @@ topc <- function(x, c = 2, coding = "B"){
   }
   return(out)
 }
-
 

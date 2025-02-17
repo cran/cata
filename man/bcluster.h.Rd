@@ -8,8 +8,8 @@
 bcluster.h(X, measure = "b", runs = 1, seed = 2021)
 }
 \arguments{
-\item{X}{three-way array; the \code{I, J, M} array has \code{I}
-assessors, \code{J} products, \code{M} attributes where CATA data have values 
+\item{X}{three-way array; the \eqn{I \times J \times M} array has \eqn{I}
+assessors, \eqn{J} products, \eqn{M} attributes where CATA data have values 
 \code{0} (not checked) and \code{1} (checked)}
 
 \item{measure}{currently only \code{b} (the \code{b}-measure) is implemented}

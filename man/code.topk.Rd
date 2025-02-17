@@ -10,9 +10,11 @@ code.topk(X, zero.below = 8, one.above = 7)
 \arguments{
 \item{X}{input matrix}
 
-\item{zero.below}{default is \code{8}; values below this numeric threshold will be coded \code{0}; use \code{NULL} if there is no such threshold}
+\item{zero.below}{default is \code{8}; values below this numeric threshold 
+will be coded \code{0}; use \code{NULL} if there is no such threshold}
 
-\item{one.above}{default is \code{7}; values above this numeric threshold will be coded \code{1}; use \code{NULL} if there is no such threshold}
+\item{one.above}{default is \code{7}; values above this numeric threshold 
+will be coded \code{1}; use \code{NULL} if there is no such threshold}
 }
 \value{
 matrix \code{X} with top-k coding applied

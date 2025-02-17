@@ -10,8 +10,8 @@ measure = "b", G = NULL, M = NULL, max.iter = 500, X.input = "data",
 tol = exp(-32), runs = 1, seed = 2021)
 }
 \arguments{
-\item{X}{three-way array with \code{I} assessors, \code{J} products, 
-\code{M} attributes where CATA data have values \code{0} (not checked) and 
+\item{X}{three-way array with \eqn{I} assessors, \eqn{J} products, 
+\eqn{M} attributes where CATA data have values \code{0} (not checked) and 
 \code{1} (checked)}
 
 \item{inspect}{default (\code{TRUE}) calls the \code{\link[cata]{inspect}}
@@ -46,9 +46,8 @@ less than \code{tol} (default: \code{exp(-32)})}
 \value{
 list with elements:
 \itemize{
-\item{\code{runs} : b-cluster analysis results from 
-\code{\link[cata]{bcluster.n}} or \code{\link[cata]{bcluster.h}} 
-(in a list if \code{runs>1})}
+\item{\code{runs} : b-cluster analysis results from \code{\link[cata]{bcluster.n}} 
+or \code{\link[cata]{bcluster.h}} (in a list if \code{runs>1})}
 \item{\code{inspect} : result from \code{\link[cata]{inspect}} (the plot from 
 this function is rendered if \code{inspect.plot} is \code{TRUE})}}
 }

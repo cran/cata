@@ -5,36 +5,40 @@
 \alias{cochranQ}
 \title{Cochran's Q test}
 \usage{
-cochranQ(X, na.rm = TRUE, quiet = FALSE, digits = getOption("digits"))
+cochranQ(X, quiet = FALSE, digits = getOption("digits"))
 }
 \arguments{
-\item{X}{matrix of \code{I} assessors (rows) and \code{J} products (columns)
+\item{X}{matrix of \eqn{I} assessors (rows) and \eqn{J} products (columns)
 where values are \code{0} (not checked) or \code{1} (checked)}
-
-\item{na.rm}{should \code{NA} values be removed?}
 
 \item{quiet}{if \code{FALSE} (default) then it prints information related to 
 the test; if \code{TRUE} it returns only the test statistic (\code{Q})}
 
-\item{digits}{significant digits (to display)}
+\item{digits}{for rounding}
 }
 \value{
-Q test statistic
+Cochran's Q test results (statistic, degrees of freedom, p-value)
 }
 \description{
-Calculate Cochran's Q test statistic. The null hypothesis that is assumed is 
-that product proportions are all equal. The alternative hypothesis is that 
-product proportions are not all equal.
+Conduct Cochran's Q test assuming equal columns proportions for matched binary
+responses versus the alternative hypothesis of unequal column proportions.
+}
+\details{
+Method returns test statistic, degrees of freedom, and p value from Cochran's
+Q test.
 }
 \examples{
 data(bread)
 
-# Cochran's Q test on the first 25 consumers on the first attribute ("Fresh")
-cochranQ(bread$cata[1:25,,1])
+# Cochran's Q test on the first 50 consumers on the first attribute ("Fresh")
+cochranQ(bread$cata[1:50, , 1], digits=3)
+
+# Same, returning only test statistics for the first 4 attributes
+t(res <- apply(bread$cata[1:50, , 1:4], 3, cochranQ, quiet=TRUE, digits=3))
 }
 \references{
-Cochran, W. G. (1950). The comparison of percentages in matched samples. 
-\emph{Biometrika}, 37, 256-266.
+Cochran, W.G. (1950). The comparison of percentages in matched samples. 
+\emph{Biometrika}, 37, 256-266, \doi{10.2307/2332378} 
 
 Meyners, M., Castura, J.C., & Carr, B.T. (2013). Existing and  
 new approaches for the analysis of CATA data. \emph{Food Quality and Preference}, 

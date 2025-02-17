@@ -17,18 +17,16 @@ ARI(x, y, signif = FALSE, n = 1000)
 \item{n}{number of replicates in Monte Carlo significance test}
 }
 \value{
-ari adjusted Rand index
-
-nari normalized adjusted Rand index
-
-sim.mean average value of null distribution (should be closed to zero)
-
-sim.var variance of null distribution
-
-pvalue P value of observed ARI (or NARI) value
+list of the following:
+\itemize{
+\item{\code{ari} adjusted Rand index}
+\item{\code{nari} normalized adjusted Rand index}
+\item{\code{sim.mean} average value of null distribution (should be closed to zero)}
+\item{\code{sim.var} variance of null distribution}
+\item{\code{p.value} P value of observed ARI (or NARI) value}}
 }
 \description{
-Calculate the adjusted Rand index between two sets of cluster memberships.
+Calculate the adjusted Rand index (ARI) between two sets of cluster memberships.
 }
 \examples{
 x <- sample(1:3, 20, replace = TRUE)

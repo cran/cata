@@ -8,18 +8,18 @@
 toWideMatrix(X)
 }
 \arguments{
-\item{X}{three-dimensional array (\code{I} assessors, \code{J}
-products, \code{M} attributes) where values are \code{0} (not checked) 
+\item{X}{three-dimensional array (\eqn{I} assessors, \eqn{J}
+products, \eqn{M} attributes) where values are \code{0} (not checked) 
 or \code{1} (checked)}
 }
 \value{
-A matrix with \code{J} products in rows and \code{I} 
-assessors * \code{M} attributes in columns
+A matrix with \code{J} products in rows and \eqn{I} 
+assessors \eqn{\times M} attributes in columns
 }
 \description{
-Converts a three-dimensional array (\code{I} assessors, \code{J}
-products, \code{M} attributes) to a two-dimensional matrix
-(\code{J} products, (\code{I} assessors, \code{M} attributes))
+Converts a three-dimensional array (\eqn{I} assessors, \eqn{J}
+products, \eqn{M} attributes) to a two-dimensional matrix
+(\eqn{J} products, (\eqn{I} assessors, \eqn{M} attributes))
 }
 \examples{
 data(bread)

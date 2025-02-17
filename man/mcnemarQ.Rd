@@ -5,18 +5,16 @@
 \alias{mcnemarQ}
 \title{McNemar's test}
 \usage{
-mcnemarQ(X, na.rm = TRUE, quiet = FALSE, digits = getOption("digits"))
+mcnemarQ(X, quiet = FALSE, digits = getOption("digits"))
 }
 \arguments{
-\item{X}{matrix of \code{I} assessors (rows) and \code{J} products (columns)
+\item{X}{matrix of \eqn{I} assessors (rows) and \eqn{J} products (columns)
 where values are \code{0} (not checked) or \code{1} (checked)}
-
-\item{na.rm}{should \code{NA} values be removed?}
 
 \item{quiet}{if \code{FALSE} (default) then it prints information related to 
 the test; if \code{TRUE} it returns only the test statistic (\code{Q})}
 
-\item{digits}{significant digits (to display)}
+\item{digits}{for rounding}
 }
 \value{
 Test results for all McNemar pairwise tests conducted via the 
@@ -30,11 +28,14 @@ can be conducted after Cochran's Q test.
 data(bread)
 
 # McNemar's exact pairwise test for all product pairs
-# on the first 25 consumers and the first attribute ("Fresh")
-mcnemarQ(bread$cata[1:25,,1])
+# on the first 50 consumers and the first attribute ("Fresh")
+mcnemarQ(bread$cata[1:50, , 1])
+
+# Same, returning only results for the first 4 attributes
+(res <- apply(bread$cata[1:50, , 1:4], 3, mcnemarQ, quiet=TRUE, simplify=FALSE))
 }
 \references{
-Cochran, W. G. (1950). The comparison of percentages in matched samples. 
+Cochran, W.G. (1950). The comparison of percentages in matched samples. 
 \emph{Biometrika}, 37, 256-266. 
 
 McNemar, Q. (1947). Note on the sampling error of the difference between 

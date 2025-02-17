@@ -3,7 +3,7 @@
 \encoding{UTF-8}
 \name{rv.coef}
 \alias{rv.coef}
-\title{Calculate RV Coefficient}
+\title{Calculate \eqn{RV} Coefficient}
 \usage{
 rv.coef(X, Y, method = 1)
 }
@@ -12,13 +12,13 @@ rv.coef(X, Y, method = 1)
 
 \item{Y}{input matrix (same dimensions as \code{X})}
 
-\item{method}{\code{1} (default) and \code{2} give identical RV coefficients}
+\item{method}{\code{1} (default) and \code{2} give identical \eqn{RV} coefficients}
 }
 \value{
-RV coefficient
+\eqn{RV} coefficient
 }
 \description{
-Calculate RV coefficient
+Calculate \eqn{RV} coefficient
 }
 \examples{
 # Generate some data

@@ -8,8 +8,8 @@
 homogeneity(X, oneI = FALSE, oneM = FALSE)
 }
 \arguments{
-\item{X}{three-way array; the \code{I, J, M} array has \code{I}
-assessors, \code{J} products, \code{M} attributes where CATA data have values 
+\item{X}{three-way array; the \eqn{I \times J \times M} array has \eqn{I}
+assessors, \eqn{J} products, \eqn{M} attributes where CATA data have values 
 \code{0} (not checked) and \code{1} (checked)}
 
 \item{oneI}{indicates whether calculation is for one assessor (default: 
@@ -33,7 +33,7 @@ homogeneity(bread$cata[1:7,,1:6])
 }
 \references{
 Llobell, F., Cariou, V., Vigneau, E., Labenne, A., & Qannari, 
-E. M. (2019). A new approach for the analysis of data and the clustering of  
+E.M. (2019). A new approach for the analysis of data and the clustering of  
 subjects in a CATA experiment. \emph{Food Quality and Preference}, 72, 31-39, 
 \doi{10.1016/j.foodqual.2018.09.006}
 }

@@ -9,13 +9,13 @@ evaluateClusterQuality(X, M, alpha = .05, M.order = NULL,
 quiet = FALSE, digits = getOption("digits"), ...)
 }
 \arguments{
-\item{X}{three-way array; the \code{I, J, M} array has \code{I}
-assessors, \code{J} products, \code{M} attributes where CATA data have values 
+\item{X}{three-way array; the \eqn{I \times J \times M} array has \eqn{I}
+assessors, \eqn{J} products, \eqn{M} attributes where CATA data have values 
 \code{0} (not checked) and \code{1} (checked)}
 
 \item{M}{cluster memberships}
 
-\item{alpha}{significance level to be used for two-tailed tests}
+\item{alpha}{significance level for two-tailed tests (default: \eqn{\alpha = 0.05})}
 
 \item{M.order}{can be used to change the cluster numbers (e.g. to label 
 cluster 1 as cluster 2 and vice versa); defaults to \code{NULL}}
@@ -31,7 +31,7 @@ measures; if \code{TRUE} then returns results without printing}
 \value{
 A list containing cluster analysis quality measures: 
 \itemize{
- \item{\code{$solution} : 
+\item{\code{$solution} : 
    \itemize{
    \item{\code{Pct.b} = percentage of the total sensory differentiation 
    retained in the solution}
@@ -41,7 +41,7 @@ A list containing cluster analysis quality measures:
    homogeneity indices)}
    \item{\code{avRV} = average RV coefficient for all between-cluster 
    comparisons}}}
- \item{\code{$clusters} : 
+\item{\code{$clusters} : 
    \itemize{
    \item{\code{ng} = number of cluster members}
    \item{\code{bg} = sensory differentiation retained in cluster}
@@ -49,11 +49,11 @@ A list containing cluster analysis quality measures:
    \item{\code{Hg} = homogeneity index within cluster (see 
    \code{\link[cata]{homogeneity}})}
    \item{\code{Dg} = within-cluster product discrimination}}}
- \item{\code{$nonredundancy.clusterpairs} : 
+\item{\code{$nonredundancy.clusterpairs} : 
    \itemize{
    \item{square data frame showing non-redundancy for each pair of clusters
    (low values indicate high redundancy)}}}
- \item{\code{$rv.clusterpairs} : 
+\item{\code{$rv.clusterpairs} : 
    \itemize{
    \item{square data frame with RV coefficient for each pair of clusters
    (high values indicate higher similarity in product configurations)}}}}
