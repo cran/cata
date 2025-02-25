@@ -37,6 +37,7 @@
 #' this function is rendered if \code{inspect.plot} is \code{TRUE})}}
 #' @export
 #' @encoding UTF-8
+#' @author J.C. Castura
 #' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
 #' Clustering consumers based on product discrimination in check-all-that-apply 
 #' (CATA) data. \emph{Food Quality and Preference}, 104564. 
@@ -106,6 +107,7 @@ bcluster <- function(X, inspect = TRUE, inspect.plot = TRUE,
 #' differentiation at each iteration (merger)).
 #' @export
 #' @encoding UTF-8
+#' @author J.C. Castura
 #' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
 #' Clustering consumers based on product discrimination in check-all-that-apply 
 #' (CATA) data. \emph{Food Quality and Preference}, 104564. 
@@ -452,6 +454,7 @@ bcluster.h <- function(X, measure = "b", runs = 1, seed = 2021){
 #' before \code{max.iter}}}
 #' @export
 #' @encoding UTF-8
+#' @author J.C. Castura
 #' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
 #' Clustering consumers based on product discrimination in check-all-that-apply 
 #' (CATA) data. \emph{Food Quality and Preference}, 104564. 
@@ -885,6 +888,7 @@ bcluster.n <- function(X, G, M = NULL, measure = "b", max.iter = 500, runs = 1,
 #' solution in \code{X} corresponding to this row}}
 #' @export
 #' @encoding UTF-8
+#' @author J.C. Castura
 #' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
 #' Clustering consumers based on product discrimination in check-all-that-apply 
 #' (CATA) data. \emph{Food Quality and Preference}, 104564. 
@@ -1057,6 +1061,7 @@ inspect <- function(X, G = 2, bestB = NULL, bestM = NULL, inspect.plot = TRUE){
 #' @return b-measure
 #' @export
 #' @encoding UTF-8
+#' @author J.C. Castura
 #' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
 #' Clustering consumers based on product discrimination in check-all-that-apply 
 #' (CATA) data. \emph{Food Quality and Preference}, 104564. 
@@ -1113,8 +1118,8 @@ getb <- function(X.b, X.c, oneI = FALSE, oneM = FALSE){
 #' 
 #' @encoding UTF-8
 #' @seealso \code{\link[cata]{mcnemarQ}}
+#' @author J.C. Castura
 #' @references  
-#' 
 #' Cochran, W.G. (1950). The comparison of percentages in matched samples. 
 #' \emph{Biometrika}, 37, 256-266, \doi{10.2307/2332378} 
 #' 
@@ -1144,8 +1149,7 @@ cochranQ <- function(X, quiet = FALSE, digits = getOption("digits")){
   }
   Jn <- ncol(X)
   # Cochran's Q test
-  numQ <- (Jn * (Jn-1) * (sum(colSums(X)^2) - 
-                            (sum(X)^2)/Jn))
+  numQ <- Jn * (Jn-1) * (sum(colSums(X)^2) - (sum(X)^2)/Jn)
   denomQ <-  Jn * sum(X) - sum(rowSums(X)^2)
   Q = numQ / denomQ
   # chance-corrected effect size
@@ -1171,9 +1175,9 @@ cochranQ <- function(X, quiet = FALSE, digits = getOption("digits")){
   if(!quiet){
     cat(paste(c("",
                 "Cochran's Q test", 
-                "----------------", "",
+                "----------------",
                 "H0: Citation rates equal for all products (columns)",
-                "H1: Citation rates are not equal for all products (columns)",
+                "H1: Citation rates not equal for all products",
                 ""), 
               collapse = '\n'))
     print(o[1:3])
@@ -1200,13 +1204,14 @@ cochranQ <- function(X, quiet = FALSE, digits = getOption("digits")){
 #' @export
 #' @encoding UTF-8
 #' @seealso \code{\link[cata]{cochranQ}}
+#' @author J.C. Castura
 #' @references  
-#' 
 #' Cochran, W.G. (1950). The comparison of percentages in matched samples. 
-#' \emph{Biometrika}, 37, 256-266. 
+#' \emph{Biometrika}, 37, 256-266. \doi{10.2307/2332378}
 #' 
 #' McNemar, Q. (1947). Note on the sampling error of the difference between 
 #' correlated proportions or percentages. \emph{Psychometrika}, 12(2), 153-157.
+#' \doi{10.1007/BF02295996}
 #' 
 #' Meyners, M., Castura, J.C., & Carr, B.T. (2013). Existing and  
 #' new approaches for the analysis of CATA data. \emph{Food Quality and 
@@ -1257,7 +1262,7 @@ mcnemarQ <- function(X, quiet = FALSE, digits = getOption("digits")){
                 "McNemar's pairwise test", 
                 "-----------------------", "",
                 "H0: Citation rates equal for both products",
-                "H1: Citation rates are not equal for both products",
+                "H1: Citation rates not equal for both products",
                 "", ""), 
               collapse = '\n'))
     res.print <- res
@@ -1291,6 +1296,7 @@ mcnemarQ <- function(X, quiet = FALSE, digits = getOption("digits")){
 #' parameter), \eqn{M} attributes
 #' @export
 #' @encoding UTF-8
+#' @author J.C. Castura
 #' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
 #' Clustering consumers based on product discrimination in check-all-that-apply 
 #' (CATA) data. \emph{Food Quality and Preference}, 104564. 
@@ -1378,6 +1384,7 @@ barray <- function(X, values = "bc", type.in = "binary", type.out = "binary"){
 #' assessors \eqn{\times M} attributes in columns
 #' @export
 #' @encoding UTF-8
+#' @author J.C. Castura
 #' @examples
 #' data(bread)
 #' 
@@ -1477,9 +1484,11 @@ toMatrix <- function(X, header.rows = TRUE, oneI = FALSE, oneM = FALSE){
 #' @return \eqn{RV} coefficient
 #' @export
 #' @encoding UTF-8
+#' @author J.C. Castura
 #' @references Robert, P., & Escoufier, Y. (1976). A unifying tool for linear 
 #' multivariate statistical methods: the RV-coefficient. \emph{Journal of the Royal 
 #' Statistical Society: Series C (Applied Statistics)}, 25, 257-265.
+#' \doi{10.2307/2347233}
 #' @examples
 #' # Generate some data
 #' set.seed(123)
@@ -1517,6 +1526,7 @@ rv.coef <- function(X, Y, method = 1){
 #' @return Salton's cosine measure
 #' @export
 #' @encoding UTF-8
+#' @author J.C. Castura
 #' @references Salton, G., & McGill, M.J. (1983). \emph{Introduction to Modern 
 #' Information Retrieval}. Toronto: McGraw-Hill.
 #' @examples
@@ -1546,6 +1556,7 @@ salton <- function(X, Y){
 #' @return matrix \code{X} with top-k coding applied
 #' @export
 #' @encoding UTF-8
+#' @author J.C. Castura
 #' @references Castura, J.C., Meyners, M., Pohjanheimo, T., Varela, P., & Næs, T. (2023). 
 #' An approach for clustering consumers by their top-box and top-choice responses. 
 #' \emph{Journal of Sensory Studies}, e12860. \doi{10.1111/joss.12860}
@@ -1587,6 +1598,7 @@ code.topk <- function(X, zero.below = 8, one.above = 7){
 #' @return matrix \code{X} with top-k coding applied
 #' @export
 #' @encoding UTF-8
+#' @author J.C. Castura
 #' @references Castura, J.C., Meyners, M., Pohjanheimo, T., Varela, P., & Næs, T. (2023). 
 #' An approach for clustering consumers by their top-box and top-choice responses. 
 #' \emph{Journal of Sensory Studies}, e12860. \doi{10.1111/joss.12860}

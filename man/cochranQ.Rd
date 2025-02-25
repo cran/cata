@@ -47,3 +47,6 @@ new approaches for the analysis of CATA data. \emph{Food Quality and Preference}
 \seealso{
 \code{\link[cata]{mcnemarQ}}
 }
+\author{
+J.C. Castura
+}

@@ -33,4 +33,8 @@ rv.coef(X, Y)
 Robert, P., & Escoufier, Y. (1976). A unifying tool for linear 
 multivariate statistical methods: the RV-coefficient. \emph{Journal of the Royal 
 Statistical Society: Series C (Applied Statistics)}, 25, 257-265.
+\doi{10.2307/2347233}
+}
+\author{
+J.C. Castura
 }

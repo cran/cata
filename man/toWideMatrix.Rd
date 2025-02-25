@@ -28,3 +28,6 @@ data(bread)
 # to a wide matrix
 toWideMatrix(bread$cata[1:8,,1:4])
 }
+\author{
+J.C. Castura
+}

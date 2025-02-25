@@ -30,6 +30,10 @@ dist.Att <- mad.dist(t(CATA.swept))
 plot(as.dendrogram(hclust(dist.Att, method = "complete")), main = "Attribute clusters")
 }
 \references{
-One citation, one vote! A new approach to the analysis of check-all-that-apply 
-(CATA) data in sensometrics based on L1 norm methods.
+Chaya, C., Castura, J.C., & Greenacre, M.J. (2025). One citation, one vote! 
+A new approach for analyzing check-all-that-apply (CATA) data in sensometrics, 
+using L1 norm methods. \doi{doi:10.48550/arXiv.2502.15945}
+}
+\author{
+J.C. Castura
 }

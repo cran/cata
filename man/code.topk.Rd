@@ -35,3 +35,6 @@ Castura, J.C., Meyners, M., Pohjanheimo, T., Varela, P., & Næs, T. (2023).
 An approach for clustering consumers by their top-box and top-choice responses. 
 \emph{Journal of Sensory Studies}, e12860. \doi{10.1111/joss.12860}
 }
+\author{
+J.C. Castura
+}

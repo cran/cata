@@ -39,9 +39,11 @@
 #' \item{\code{Call} : \code{madperm} function call}}
 #' @export
 #' @encoding UTF-8
-#' @references 
-#' One citation, one vote! A new approach to the analysis of check-all-that-apply 
-#' (CATA) data in sensometrics based on L1 norm methods.
+#' @author J.C. Castura
+#' @references
+#' Chaya, C., Castura, J.C., & Greenacre, M.J. (2025). One citation, one vote! 
+#' A new approach for analyzing check-all-that-apply (CATA) data in sensometrics, 
+#' using L1 norm methods. \doi{doi:10.48550/arXiv.2502.15945}
 #' @examples
 #' data(bread)
 #' # add product names
@@ -87,7 +89,7 @@ madperm <- function(X, B = 99, seed = .Random.seed, tests = 1:5,
     return(A)
   }
   .p.ge <- function(y){ 
-    mean(abs(y) >= abs(y[1])) 
+    mean(abs(y) >= abs(y[1]))
   }
   .prop2pct <- function(x, digits = 1){
     return(round(x*100, digits = digits))
@@ -453,9 +455,11 @@ madperm <- function(X, B = 99, seed = .Random.seed, tests = 1:5,
 #' @return object of class \code{dist} giving inter-object MAD distances 
 #' @export
 #' @encoding UTF-8
+#' @author J.C. Castura
 #' @references 
-#' One citation, one vote! A new approach to the analysis of check-all-that-apply 
-#' (CATA) data in sensometrics based on L1 norm methods.
+#' Chaya, C., Castura, J.C., & Greenacre, M.J. (2025). One citation, one vote! 
+#' A new approach for analyzing check-all-that-apply (CATA) data in sensometrics, 
+#' using L1 norm methods. \doi{doi:10.48550/arXiv.2502.15945}
 #' @examples
 #' data(bread)
 #' CATA.freq <- apply(bread$cata, 2:3, sum)

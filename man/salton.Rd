@@ -31,3 +31,6 @@ salton(X, Y)
 Salton, G., & McGill, M.J. (1983). \emph{Introduction to Modern 
 Information Retrieval}. Toronto: McGraw-Hill.
 }
+\author{
+J.C. Castura
+}

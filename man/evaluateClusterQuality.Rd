@@ -77,3 +77,6 @@ Clustering consumers based on product discrimination in check-all-that-apply
 \seealso{
 \code{\link[cata]{homogeneity}}
 }
+\author{
+J.C. Castura
+}

@@ -124,6 +124,7 @@ homogeneity <- function(X, oneI = FALSE, oneM = FALSE){
 #' @export
 #' @encoding UTF-8
 #' @seealso \code{\link[cata]{homogeneity}}
+#' @author J.C. Castura
 #' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
 #' Clustering consumers based on product discrimination in check-all-that-apply 
 #' (CATA) data. \emph{Food Quality and Preference}, 104564. 
@@ -345,9 +346,11 @@ evaluateClusterQuality <- function(X, M, alpha = .05, M.order = NULL,
 #' \item{\code{p.value} P value of observed ARI (or NARI) value}}
 #' @export
 #' @encoding UTF-8
+#' @author J.C. Castura
 #' @references Hubert, L., & Arabie, P. (1985). Comparing partitions. 
 #' \emph{Journal of Classification}, 2, 193–218.
 #' \doi{10.1007/BF01908075}.
+#' 
 #' @references Qannari, E.M., Courcoux, P., & Faye, P. (2014). 
 #' Significance test of the adjusted Rand index. Application to the free sorting 
 #' task. \emph{Food Quality and Preference}, 32, 93-97. 
@@ -438,6 +441,7 @@ ARI <- function(x, y, signif = FALSE, n = 1000){
 #' @param xlab label for points along x axis
 #' @export
 #' @encoding UTF-8
+#' @author J.C. Castura
 #' @references Castura, J.C., Meyners, M., Varela, P., & Næs, T. (2022). 
 #' Clustering consumers based on product discrimination in check-all-that-apply 
 #' (CATA) data. \emph{Food Quality and Preference}, 104564. 

@@ -46,3 +46,6 @@ Clustering consumers based on product discrimination in check-all-that-apply
 (CATA) data. \emph{Food Quality and Preference}, 104564. 
 \doi{10.1016/j.foodqual.2022.104564}.
 }
+\author{
+J.C. Castura
+}

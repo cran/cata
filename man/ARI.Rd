@@ -44,3 +44,6 @@ Significance test of the adjusted Rand index. Application to the free sorting
 task. \emph{Food Quality and Preference}, 32, 93-97. 
 \doi{10.1016/j.foodqual.2013.05.005}.
 }
+\author{
+J.C. Castura
+}

@@ -45,3 +45,6 @@ Meyners, M., Castura, J.C., & Carr, B.T. (2013). Existing and new
 approaches for the analysis of CATA data. \emph{Food Quality and Preference}, 
 30, 309-319, \doi{10.1016/j.foodqual.2013.06.010}
 }
+\author{
+J.C. Castura
+}

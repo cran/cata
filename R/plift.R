@@ -17,6 +17,7 @@
 #' is \code{TRUE}.
 #' @export
 #' @encoding UTF-8
+#' @author J.C. Castura
 #' @references 
 #' Meyners, M., Castura, J.C., & Carr, B.T. (2013). Existing and new 
 #' approaches for the analysis of CATA data. \emph{Food Quality and Preference}, 
